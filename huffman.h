@@ -2,6 +2,7 @@
 #define HUFFMAN_H
 
 #include <stdint.h>
+#include <algorithm>
 #include <vector>
 #include "bitstream.h"
 #include "utilities.h"

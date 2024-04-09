@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     fs.close();
     */
 
-    ImageInfo<uint8_t> image(100,100,ColorType::True,Color(0.8,0.4,0.1,1));
+    ImageInfo<uint8_t> image(2000,2000,ColorType::True,Color(0.8,0.4,0.1,1));
     image.setFilters(FilterType::Sub);
     
     printSig(fs);
