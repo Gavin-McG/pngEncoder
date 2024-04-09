@@ -1,0 +1,23 @@
+#ifndef HUFFMAN_H
+#define HUFFMAN_H
+
+#include <stdint.h>
+#include <vector>
+#include "bitstream.h"
+#include "utilities.h"
+
+using namespace std;
+
+//return the Flevel flag required to make the 16bit zlib flat a multiple of 31 as required
+uint8_t FCheck(uint8_t cmf, uint8_t flg);
+
+//pack literals into uncompressed stream with zlib info (least compressed)
+vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler);
+
+//compress codes using static huffman coding (somewhat compressed)
+vector<uint8_t> huffman_static(vector<uint16_t> codes, uint32_t adler);
+
+//compress codes using dynamic huffman coding (most compressed)
+vector<uint8_t> huffman_dynamic(vector<uint16_t> codes, uint32_t adler);
+
+#endif
