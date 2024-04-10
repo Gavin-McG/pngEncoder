@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     }
 
     //lz77 test
-    if (true) {
+    if (false) {
         ImageInfo<uint8_t> image(16,16,ColorType::TrueAlpha,Color(0.6,0.4,1,1));
 
         vector<uint8_t> data = image.getDatastream();
@@ -108,6 +108,13 @@ int main(int argc, char* argv[]) {
                 default: break;
             }
             cout << c.val << ' ';
+        }
+    }
+
+    //code tests
+    if (true) {
+        for (uint16_t i=3; i<=258; ++i) {
+            cout << i << ": " << getLengthCode(i) << '\n';
         }
     }
 

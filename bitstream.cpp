@@ -1,19 +1,6 @@
 #include "bitstream.h"
 
-template<typename T>
-void Bitstream::push(T integer) {
-    size_t s = sizeof(integer);
-    for (size_t i=1; i<=s; ++i) {
-        pushBit((integer<<(s-i))%2);
-    }
-}
 
-template<typename T>
-void Bitstream::push(T integer, size_t bits) {
-    for (size_t i=1; i<=bits; ++i) {
-        pushBit((integer<<(bits-i))%2);
-    }
-}
 
 size_t Bitstream::size() {
     return stream.size() + (bits>0?1:0);
