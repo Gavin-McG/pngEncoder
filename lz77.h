@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
-static const uint16_t windowSize = (UINT16_MAX>>1)+1;
-static const uint16_t lengthSize = 258;
+static const size_t windowSize = (UINT16_MAX>>1)+1;
+static const size_t lengthSize = 258;
 
 enum CodeType {
     Literal,

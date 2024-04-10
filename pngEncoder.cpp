@@ -45,6 +45,9 @@ void getMode(int argc, char * argv[], Options &options) {
 }
 
 int main(int argc, char* argv[]) {
+
+    cout << ios_base::sync_with_stdio(false);
+
     //generate CRC32 lookup table
     generateCRC(crcTable);
 
@@ -66,21 +69,20 @@ int main(int argc, char* argv[]) {
         vector<uint8_t> data = image.getDatastream();
         uint32_t adler = getADLER32(data);
         vector<uint8_t> compressed = huffman_uncompressed(data, adler);
-        data.clear();
+        uint32_t length = compressed.size();
+        data = vector<uint8_t>();
         
         stringstream ss;
         ss << "IDAT";
         for (uint8_t i : compressed) {
             ss << i;
         }
+        compressed = vector<uint8_t>();
         uint32_t crc = getCRC32(ss,crcTable);
 
-        uint32_t length = compressed.size();
         printInt(fs,length);
         fs << ss.str();
         printInt(fs,crc);
-
-        cout << length;
 
         printIEND(fs, crcTable);
         fs.close();
@@ -111,13 +113,47 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    //code tests
+    //static tests
     if (true) {
-        Bitstream bs;
-        for (uint16_t i=1; i<=32768; ++i) {
-            addDistanceCode(bs,i);
-            bs.bytesClear();
+        //output
+        ofstream fs(options.fileOut);
+
+        ImageInfo<uint8_t> image(300,300,ColorType::True,Color(1,0,0,1));
+        image.setFilters(FilterType::None);
+        
+        printSig(fs);
+        printIDHR(fs,image,crcTable);
+
+        vector<uint8_t> data = image.getDatastream();
+        uint32_t adler = getADLER32(data);
+        vector<Code> codes = lz77_compress(data);
+        cout << "finished lz77" << endl;
+        data = vector<uint8_t>();
+        vector<uint8_t> compressed = huffman_static(codes, adler);
+        uint32_t length = compressed.size();
+        cout << "finished static" << endl;
+        codes = vector<Code>();
+        
+        stringstream ss;
+        ss << "IDAT";
+        for (uint8_t i : compressed) {
+            ss << i;
         }
+        compressed = vector<uint8_t>();
+        uint32_t crc = getCRC32(ss,crcTable);
+
+        printInt(fs,length);
+        fs << ss.str();
+        printInt(fs,crc);
+
+        printIEND(fs, crcTable);
+        fs.close();
+    }
+
+    //lz77 debug test
+    if (false) {
+        vector<uint8_t> vec = {0x00,0x00,0x00,0x00,0x00,0x00,0xff,0x00,0x00,0x00,0xff};
+        lz77_compress(vec);
     }
 
     return 0;

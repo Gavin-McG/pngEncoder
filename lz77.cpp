@@ -6,24 +6,23 @@ vector<Code> lz77_compress(vector<uint8_t> &literals) {
     vector<Code> encoded;
 
     //loop through until all bytes have been encoded
-    uint16_t i=0;
+    size_t i=0;
     while(i<literals.size()) {
         uint16_t maxLength = 0;
         uint16_t distance = 0;
 
         //check full window as potential starting point for pointer
-        for (uint16_t j = i<windowSize?0:i-windowSize; j<i; ++j) {
-            uint16_t current = 0;
+        for (size_t j = i-min(windowSize,i); j<i; ++j) {
+            uint16_t k = 0;
 
             //check until max length or non-match found
-            for (uint16_t k=0; k<lengthSize && i+k<literals.size(); ++k) {
+            for (; k<lengthSize && i+k<literals.size(); ++k) {
                 if (literals[i+k]!=literals[j+k]) break;
-                ++current;
             }
 
             //update best option
-            if (current >= maxLength) {
-                maxLength = current;
+            if (k >= maxLength) {
+                maxLength = k;
                 distance = i-j;
             }
         }

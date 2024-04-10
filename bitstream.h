@@ -9,11 +9,19 @@ using namespace std;
 class  Bitstream {
     public:
 
+    Bitstream() : current(0), bits(0) {}
+
     template<typename T>
     void push(T integer);
 
     template<typename T>
     void push(T integer, size_t bits);
+
+    template<typename T>
+    void pushReverse(T integer);
+
+    template<typename T>
+    void pushReverse(T integer, size_t bits);
 
     size_t size();
 

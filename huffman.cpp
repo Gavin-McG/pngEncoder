@@ -83,12 +83,12 @@ void addLengthCode(Bitstream &bs, uint16_t length) {
     lengthStatic(bs, code);
 
     //add extra bits
-    bs.push(r1,xbits);
+    bs.pushReverse(r1,xbits);
 }
 
 void lengthStatic(Bitstream &bs, uint16_t lengthCode) {
     if (lengthCode <= 279) {
-        bs.push(1+(lengthCode-256),7);
+        bs.push((lengthCode-256),7);
     }else{
         bs.push(192+(lengthCode-280),8);
     }
@@ -114,7 +114,7 @@ void addDistanceCode(Bitstream &bs, uint16_t distance) {
     distanceStatic(bs, code);
 
     //add extra bits
-    bs.push(r1,xbits);
+    bs.pushReverse(r1,xbits);
 }
 
 void distanceStatic(Bitstream &bs, uint16_t distanceCode) {
@@ -125,8 +125,9 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     vector<uint8_t> vec;
 
     //flags
+    
     uint8_t cmf = 0x78;
-    uint8_t flg = 0x01;
+    uint8_t flg = 0x40;
     vec.push_back(cmf);
     vec.push_back(flg+FCheck(cmf,flg));
 
@@ -140,17 +141,20 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     for (Code c : codes) {
         switch (c.type) {
             case CodeType::Literal:
-
+                literalStatic(bs,c.val);
                 break;
             case CodeType::Length:
-                
+                addLengthCode(bs,c.val);
                 break;
             case CodeType::Distance:
-                
+                addDistanceCode(bs,c.val);
                 break;
             default: break;
         }
     }
+
+    //end of block
+    lengthStatic(bs,256);
 
     //add data to byte vector
     vector<uint8_t> data = bs.bytesClear();
