@@ -49,9 +49,20 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
 
 
 
-uint16_t getLengthCode(uint16_t length) {
+void literalStatic(Bitstream &bs, uint16_t literal) {
+    if (literal<=143) {
+        bs.push(48+literal,8);
+    }else{
+        bs.push(400+(literal-144),9);
+    }
+}
+
+void addLengthCode(Bitstream &bs, uint16_t length) {
     //edge case 258
-    if (length == 258) return 285;
+    if (length == 258) {
+        lengthStatic(bs, 285);
+        return;
+    }
 
     //shift length into range 0-255
     uint16_t shifted = length-3;
@@ -67,11 +78,47 @@ uint16_t getLengthCode(uint16_t length) {
 
     //get code
     uint16_t code = c + 4*xbits + (shifted>=4?4:0) + 257;
-    return code;
+
+    //add static length code
+    lengthStatic(bs, code);
+
+    //add extra bits
+    bs.push(r1,xbits);
 }
 
-void addLengthXbits(Bitstream &bs, uint16_t length) {
+void lengthStatic(Bitstream &bs, uint16_t lengthCode) {
+    if (lengthCode <= 279) {
+        bs.push(1+(lengthCode-256),7);
+    }else{
+        bs.push(192+(lengthCode-280),8);
+    }
+}
 
+void addDistanceCode(Bitstream &bs, uint16_t distance) {
+    //shift length into range 0-255
+    uint16_t shifted = distance-1;
+
+    //find the number of extra bits for the given length
+    uint16_t log = bit_width(shifted);
+    uint16_t xbits = log - min(static_cast<uint16_t>(2),log);
+
+    //groups sets of 4 for the 4 codes of each extra bit size
+    uint16_t r1 = shifted % (1<<xbits);
+    uint16_t r2 = shifted % (1<<(xbits+1));
+    uint16_t c = (r2-r1) >> xbits;
+
+    //get code
+    uint16_t code = c + 2*xbits + (shifted>=2?2:0);
+
+    //add static distance code
+    distanceStatic(bs, code);
+
+    //add extra bits
+    bs.push(r1,xbits);
+}
+
+void distanceStatic(Bitstream &bs, uint16_t distanceCode) {
+    bs.push(distanceCode, 5);
 }
 
 vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {

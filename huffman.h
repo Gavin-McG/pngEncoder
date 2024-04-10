@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <vector>
 #include <bit>
+#include <iostream>
 #include "bitstream.h"
 #include "utilities.h"
 #include "lz77.h"
@@ -18,10 +19,11 @@ uint8_t FCheck(uint8_t cmf, uint8_t flg);
 vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler);
 
 //static coding helper functions
-uint16_t getLengthCode(uint16_t length);
-void addLengthXbits(Bitstream &bs, uint16_t length);
+void literalStatic(Bitstream &bs, uint16_t literal);
+void addLengthCode(Bitstream &bs, uint16_t length);
+void lengthStatic(Bitstream &bs, uint16_t lengthCode);
 void addDistanceCode(Bitstream &bs, uint16_t distance);
-void addDistanceXbits(Bitstream &bs, uint16_t distance);
+void distanceStatic(Bitstream &bs, uint16_t distanceCode);
 
 //compress codes using static huffman coding (somewhat compressed)
 vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler);

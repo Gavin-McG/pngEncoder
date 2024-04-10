@@ -113,8 +113,10 @@ int main(int argc, char* argv[]) {
 
     //code tests
     if (true) {
-        for (uint16_t i=3; i<=258; ++i) {
-            cout << i << ": " << getLengthCode(i) << '\n';
+        Bitstream bs;
+        for (uint16_t i=1; i<=32768; ++i) {
+            addDistanceCode(bs,i);
+            bs.bytesClear();
         }
     }
 
