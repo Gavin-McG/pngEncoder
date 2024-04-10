@@ -47,10 +47,10 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
     return vec;
 }
 
-vector<uint8_t> huffman_static(vector<uint16_t> codes, uint32_t adler) {
+vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     return vector<uint8_t>();
 }
 
-vector<uint8_t> huffman_dynamic(vector<uint16_t> codes, uint32_t adler) {
+vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
     return vector<uint8_t>();
 }

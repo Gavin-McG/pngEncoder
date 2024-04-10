@@ -9,6 +9,7 @@
 #include "imageInfo.h"
 #include "huffman.h"
 #include "adler32.h"
+#include "lz77.h"
 
 using namespace std;
 
@@ -50,60 +51,65 @@ int main(int argc, char* argv[]) {
     // Get the mode from the command line
     Options options;
     getMode(argc, argv, options);
-    
-    //info of the image
-    ImageInfo<uint8_t> info(1,1,ColorType::True);
 
-    //output
-    ofstream fs(options.fileOut);
+    //simpleimage test
+    if (false) {
+        //output
+        ofstream fs(options.fileOut);
 
-    /*
-    //chunks
-    printSig(fs);
-    printIDHR(fs,info,crcTable);
+        ImageInfo<uint8_t> image(2000,2000,ColorType::True,Color(0.8,0.4,0.1,1));
+        image.setFilters(FilterType::Sub);
+        
+        printSig(fs);
+        printIDHR(fs,image,crcTable);
 
-    //example 1x1 IDAT chunk
-    printInt(fs,uint32_t(12)); //length
-    fs << "IDAT"; //chunk name
-    fs << "\x08"; //deflate method
-    fs << "\xd7"; //ZLIB Fcheck
-    fs << "\x63\xF8\xCF\xC0\x00\x00"; //deflate block
-    fs << "\x03\x01\x01\x00"; //ADLER32 check
-    fs << "\x18\xDD\x8D\xB0"; //CRC32 checksum
+        vector<uint8_t> data = image.getDatastream();
+        uint32_t adler = getADLER32(data);
+        vector<uint8_t> compressed = huffman_uncompressed(data, adler);
+        data.clear();
+        
+        stringstream ss;
+        ss << "IDAT";
+        for (uint8_t i : compressed) {
+            ss << i;
+        }
+        uint32_t crc = getCRC32(ss,crcTable);
 
-    printIEND(fs,crcTable);
+        uint32_t length = compressed.size();
+        printInt(fs,length);
+        fs << ss.str();
+        printInt(fs,crc);
 
-    //close png file
-    fs.close();
-    */
+        cout << length;
 
-    ImageInfo<uint8_t> image(2000,2000,ColorType::True,Color(0.8,0.4,0.1,1));
-    image.setFilters(FilterType::Sub);
-    
-    printSig(fs);
-    printIDHR(fs,image,crcTable);
-
-    vector<uint8_t> data = image.getDatastream();
-    uint32_t adler = getADLER32(data);
-    vector<uint8_t> compressed = huffman_uncompressed(data, adler);
-    data.clear();
-    
-    stringstream ss;
-    ss << "IDAT";
-    for (uint8_t i : compressed) {
-        ss << i;
+        printIEND(fs, crcTable);
+        fs.close();
     }
-    uint32_t crc = getCRC32(ss,crcTable);
 
-    uint32_t length = compressed.size();
-    printInt(fs,length);
-    fs << ss.str();
-    printInt(fs,crc);
+    //lz77 test
+    if (true) {
+        ImageInfo<uint8_t> image(16,16,ColorType::TrueAlpha,Color(0.6,0.4,1,1));
 
-    cout << length;
+        vector<uint8_t> data = image.getDatastream();
 
-    printIEND(fs, crcTable);
-    fs.close();
+        vector<Code> encoding = lz77_compress(data);
+
+        for (Code c : encoding) {
+            switch(c.type) {
+                case CodeType::Literal:
+                    cout << 'V';
+                    break;
+                case CodeType::Length:
+                    cout << 'L';
+                    break;
+                case CodeType::Distance:
+                    cout << 'D';
+                    break;
+                default: break;
+            }
+            cout << c.val << ' ';
+        }
+    }
 
     return 0;
 }

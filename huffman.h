@@ -6,6 +6,7 @@
 #include <vector>
 #include "bitstream.h"
 #include "utilities.h"
+#include "lz77.h"
 
 using namespace std;
 
@@ -16,9 +17,9 @@ uint8_t FCheck(uint8_t cmf, uint8_t flg);
 vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler);
 
 //compress codes using static huffman coding (somewhat compressed)
-vector<uint8_t> huffman_static(vector<uint16_t> codes, uint32_t adler);
+vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler);
 
 //compress codes using dynamic huffman coding (most compressed)
-vector<uint8_t> huffman_dynamic(vector<uint16_t> codes, uint32_t adler);
+vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler);
 
 #endif
