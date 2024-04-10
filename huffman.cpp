@@ -102,7 +102,7 @@ void addDistanceCode(Bitstream &bs, uint16_t distance) {
     uint16_t log = bit_width(shifted);
     uint16_t xbits = log - min(static_cast<uint16_t>(2),log);
 
-    //groups sets of 4 for the 4 codes of each extra bit size
+    //groups sets of 2 for the 2 codes of each extra bit size
     uint16_t r1 = shifted % (1<<xbits);
     uint16_t r2 = shifted % (1<<(xbits+1));
     uint16_t c = (r2-r1) >> xbits;
