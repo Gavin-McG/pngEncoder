@@ -46,7 +46,7 @@ void getMode(int argc, char * argv[], Options &options) {
 
 int main(int argc, char* argv[]) {
 
-    cout << ios_base::sync_with_stdio(false);
+    //cout << ios_base::sync_with_stdio(false);
 
     //generate CRC32 lookup table
     generateCRC(crcTable);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo<uint8_t> image(300,300,ColorType::True,Color(1,0,0,1));
+        ImageInfo<uint8_t> image(1000,1000,ColorType::True,Color(1,0,0,1));
         image.setFilters(FilterType::None);
         
         printSig(fs);
