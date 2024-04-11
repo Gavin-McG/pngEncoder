@@ -4,7 +4,7 @@
 const uint32_t crcPoly = 0xEDB88320;
 
 void generateCRC(uint32_t* crcTable) {
-    for (int i=0;i<255;++i) {
+    for (int i=0;i<=255;++i) {
         uint32_t n = i;
         for (int j=0; j<8; ++j) {
             n = (n&1)==0 ? n>>1 : (n>>1)^crcPoly;

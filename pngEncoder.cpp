@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo<uint8_t> image(1000,1000,ColorType::True,Color(1,0,0,1));
+        ImageInfo<uint8_t> image(100,100,ColorType::True,Color(1,0,0,1));
         image.setFilters(FilterType::None);
         
         printSig(fs);

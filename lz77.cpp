@@ -5,11 +5,8 @@
 vector<Code> lz77_compress(vector<uint8_t> &literals) {
     vector<Code> encoded;
 
-    //first byte must be literal
-    if (literals.size()) encoded.push_back(Code(CodeType::Literal,literals[0]));
-
     //loop through until all bytes have been encoded
-    size_t i=1;
+    size_t i=0;
     while(i<literals.size()) {
         uint16_t maxLength = 0;
         uint16_t distance = 0;
@@ -36,12 +33,12 @@ vector<Code> lz77_compress(vector<uint8_t> &literals) {
             encoded.push_back(Code(CodeType::Length,maxLength));
             encoded.push_back(Code(CodeType::Distance,distance));
             i+=maxLength;
-            cout << maxLength << endl;
+            //cout << maxLength << ' ' << distance << endl;
         }else{
             //add literal to codes
             encoded.push_back(Code(CodeType::Literal,literals[i]));
+            //cout << 1 << ' ' << literals[i] << endl;
             ++i;
-            cout << 1 << endl;
         }
     }
 
