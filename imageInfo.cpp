@@ -106,6 +106,21 @@ uint8_t paethPredictor(uint8_t a, uint8_t b, uint8_t c) {
 
 
 
+void ImageInfo::drawPixel(uint32_t x, uint32_t y, const Color &color) {
+    if (x<width && y<height) ref[y][x] = color;
+}
+
+void ImageInfo::drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const Color &color) {
+    for (uint32_t i=x; i<x+width && i<this->width; ++i) {
+        for (uint32_t j=y; j<y+height && j<this->height; ++j) {
+            ref[j][i] = color;
+        }
+    }
+}
+
+
+
+
 
 
 

@@ -49,6 +49,13 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
 
 
 
+
+
+
+
+
+
+
 void literalStatic(Bitstream &bs, uint16_t literal) {
     if (literal<=143) {
         bs.push(48+literal,8);
@@ -167,6 +174,17 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
 
     return vec;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
     return vector<uint8_t>();

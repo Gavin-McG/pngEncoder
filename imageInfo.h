@@ -23,26 +23,32 @@ class ImageInfo {
     BitDepth bitDepth;
     ColorType colorType;
 
+    //constructors (width, height + )
     ImageInfo(uint32_t width, uint32_t height, ColorType colorType = ColorType::True, BitDepth bitdepth = BitDepth::Eight, const Color &color = Color());
     ImageInfo(uint32_t width, uint32_t height, BitDepth bitdepth, const Color &color = Color());
     ImageInfo(uint32_t width, uint32_t height, ColorType colorType, const Color &color = Color());
     ImageInfo(uint32_t width, uint32_t height, const Color &color);
 
+    //filter functions
     void setFilters(FilterType type);
     void calculateBestFilters();
-
-    size_t getScanlineSize() const;
-
-    template<typename T>
-    vector<uint8_t> getScanline(size_t row, FilterType type) const;
-    vector<uint8_t> getDatastream() const;
 
     //output encoded png file to ostream
     void printPng(ostream &os, DeflateType deflateType = DeflateType::StaticCodes) const;
 
+    //drawing functions
+    void drawPixel(uint32_t x, uint32_t y, const Color &color);
+    void drawRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const Color &color);
+
     private:
     vector<vector<Color>> ref;
     vector<FilterType> filters;
+
+    //raw data functions
+    size_t getScanlineSize() const;
+    template<typename T>
+    vector<uint8_t> getScanline(size_t row, FilterType type) const;
+    vector<uint8_t> getDatastream() const;
 
     //critical png components
     void printSig(ostream &os) const;

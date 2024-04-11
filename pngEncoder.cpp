@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     Options options;
     getMode(argc, argv, options);
 
-    //simpleimage test
+    //simple image test
     if (false) {
         //output
         ofstream fs(options.fileOut);
@@ -61,31 +61,6 @@ int main(int argc, char* argv[]) {
         fs.close();
     }
 
-    //lz77 test
-    if (false) {
-        ImageInfo image(16,16,ColorType::TrueAlpha,Color(0.6,0.4,1,1));
-
-        vector<uint8_t> data = image.getDatastream();
-
-        vector<Code> encoding = lz77_compress(data);
-
-        for (Code c : encoding) {
-            switch(c.type) {
-                case CodeType::Literal:
-                    cout << 'V';
-                    break;
-                case CodeType::Length:
-                    cout << 'L';
-                    break;
-                case CodeType::Distance:
-                    cout << 'D';
-                    break;
-                default: break;
-            }
-            cout << c.val << ' ';
-        }
-    }
-
     //static tests
     if (true) {
         //output
@@ -93,6 +68,12 @@ int main(int argc, char* argv[]) {
 
         ImageInfo image(100,100,ColorType::True,Color(0.1,0.7,0.9,1));
         image.setFilters(FilterType::Paeth);
+
+        for (float i=0; i<100; i++) {
+            for (float j=0; j<100; ++j) {
+                if (uint(i+j)%2==0) image.drawPixel(i,j,Color(i/100,j/100,0.5,1));
+            }
+        }
         
         image.printPng(fs);
         
