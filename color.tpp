@@ -4,7 +4,7 @@
 #include "color.h"
 
 template<typename T>
-vector<T> Color::getbytes(ColorType colorType) {
+vector<T> Color::getbytes(ColorType colorType) const {
     vector<T> vec;
     switch (colorType) {
         case ColorType::Grey:

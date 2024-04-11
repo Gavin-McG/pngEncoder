@@ -7,7 +7,9 @@
 #include <stdint.h>
 #include "utilities.h"
 #include "crc32.h"
+#include "adler32.h"
 #include "imageInfo.h"
+#include "deflate.h"
 
 using namespace std;
 
@@ -19,8 +21,10 @@ void printSig(ostream &os);
 
 //prints an IDHR header chunk to an ostream from an imageinfo object
 //length is always 13 bytes
-template<typename T>
-void printIDHR(ostream &os, const ImageInfo<T> &info, const uint32_t* crcTable);
+void printIDHR(ostream &os, const ImageInfo &info, const uint32_t* crcTable);
+
+
+void printIDAT(ostream &os, const ImageInfo &info, DeflateType deflateType, const uint32_t* crcTable);
 
 //prints the IEND chunk to an ostream
 //constant 12 bytes, but uses CRC32 algorithm because why not?

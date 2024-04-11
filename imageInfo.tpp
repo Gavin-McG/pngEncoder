@@ -4,57 +4,7 @@
 #include "imageInfo.h"
 
 template<typename T>
-ImageInfo<T>::ImageInfo(uint32_t width, uint32_t height, ColorType colorType) : width(width), height(height), bitDepth(sizeof(T)*8), colorType(colorType) {
-    filters.resize(height);
-    ref.resize(height);
-    for (size_t i=0; i<ref.size(); ++i) {
-        ref[i].resize(width);
-    }
-}
-
-template<typename T>
-ImageInfo<T>::ImageInfo(uint32_t width, uint32_t height, ColorType colorType, const Color &color) : width(width), height(height), bitDepth(sizeof(T)*8), colorType(colorType) {
-    filters.resize(height);
-    ref.resize(height);
-    for (size_t i=0; i<ref.size(); ++i) {
-        ref[i].resize(width, color);
-    }
-}
-
-template<typename T>
-void ImageInfo<T>::setFilters(FilterType type) {
-    for (size_t i=0; i<filters.size(); ++i) {
-        filters[i] = type;
-    }
-}
-
-template<typename T>
-void ImageInfo<T>::calculateBestFilters() {
-
-}
-
-template<typename T>
-size_t ImageInfo<T>::getScanlineSize() {
-    switch (colorType) {
-        case ColorType::Grey:
-            return 1+1*width*bitDepth/8;
-        case ColorType::True:
-            return 1+3*width*bitDepth/8;
-        case ColorType::Indexed:
-            cerr << "Indexed ColorType not supported\n";
-            return 0;
-        case ColorType::GreyAlpha:
-            return 1+2*width*bitDepth/8;
-        case ColorType::TrueAlpha:
-            return 1+4*width*bitDepth/8;
-        default:
-            cerr << "Invalid ColorType " << colorType << '\n';
-            return 0;
-    }
-}
-
-template<typename T>
-vector<uint8_t> ImageInfo<T>::getScanline(size_t row, FilterType type) {
+vector<uint8_t> ImageInfo::getScanline(size_t row, FilterType type) const {
     vector<uint8_t> vec;
     vec.reserve(getScanlineSize());
     vec.push_back(static_cast<uint8_t>(type));
@@ -98,19 +48,6 @@ vector<uint8_t> ImageInfo<T>::getScanline(size_t row, FilterType type) {
                 break;
         }
         
-    }
-    return vec;
-}
-
-template<typename T>
-vector<uint8_t> ImageInfo<T>::getDatastream() {
-    vector<uint8_t> vec;
-    vec.reserve(getScanlineSize()*height);
-    for (size_t i=0; i<height; ++i) {
-        vector<uint8_t> scanline = getScanline(i,filters[i]);
-        for (size_t j=0; j<scanline.size(); ++j) {
-            vec.push_back(scanline[j]);
-        }
     }
     return vec;
 }

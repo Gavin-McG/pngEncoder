@@ -7,23 +7,30 @@
 
 using namespace std;
 
+static const ColorType  DEFAULT_COLORTYPE   = ColorType::True;
+static const BitDepth   DEFAULT_BITDEPTH    = BitDepth::Eight;
+static const Color      DEFAULT_COLOR       = Color();
+
 //class used to store info of an image.
-template<typename T>
 class ImageInfo {
     public:
     uint32_t width, height;
-    uint8_t bitDepth;
+    BitDepth bitDepth;
     ColorType colorType;
 
-    ImageInfo(uint32_t width, uint32_t height, ColorType colorType);
-    ImageInfo(uint32_t width, uint32_t height, ColorType colorType, const Color &color);
+    ImageInfo(uint32_t width, uint32_t height, ColorType colorType = ColorType::True, BitDepth bitdepth = BitDepth::Eight, const Color &color = Color());
+    ImageInfo(uint32_t width, uint32_t height, BitDepth bitdepth, const Color &color = Color());
+    ImageInfo(uint32_t width, uint32_t height, ColorType colorType, const Color &color = Color());
+    ImageInfo(uint32_t width, uint32_t height, const Color &color);
 
     void setFilters(FilterType type);
     void calculateBestFilters();
 
-    size_t getScanlineSize();
-    vector<uint8_t> getScanline(size_t row, FilterType type);
-    vector<uint8_t> getDatastream();
+    size_t getScanlineSize() const;
+
+    template<typename T>
+    vector<uint8_t> getScanline(size_t row, FilterType type) const;
+    vector<uint8_t> getDatastream() const;
 
     private:
     vector<vector<Color>> ref;

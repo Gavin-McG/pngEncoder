@@ -27,6 +27,14 @@ enum ColorType : uint8_t {
     TrueAlpha
 };
 
+enum BitDepth : uint8_t {
+    One = 1,
+    Two = 2,
+    Four = 4,
+    Eight = 8,
+    Sixteen = 16
+};
+
 template<typename T>
 T tobytes(float f);
 

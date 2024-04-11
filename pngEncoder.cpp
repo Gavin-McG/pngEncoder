@@ -10,6 +10,7 @@
 #include "huffman.h"
 #include "adler32.h"
 #include "lz77.h"
+#include "deflate.h"
 
 using namespace std;
 
@@ -60,29 +61,13 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo<uint8_t> image(2000,2000,ColorType::True,Color(0.8,0.4,0.1,1));
+        ImageInfo image(2000,2000,ColorType::True,Color(0.8,0.4,0.1,1));
         image.setFilters(FilterType::Sub);
         
         printSig(fs);
         printIDHR(fs,image,crcTable);
 
-        vector<uint8_t> data = image.getDatastream();
-        uint32_t adler = getADLER32(data);
-        vector<uint8_t> compressed = huffman_uncompressed(data, adler);
-        uint32_t length = compressed.size();
-        data = vector<uint8_t>();
-        
-        stringstream ss;
-        ss << "IDAT";
-        for (uint8_t i : compressed) {
-            ss << i;
-        }
-        compressed = vector<uint8_t>();
-        uint32_t crc = getCRC32(ss,crcTable);
-
-        printInt(fs,length);
-        fs << ss.str();
-        printInt(fs,crc);
+        printIDAT(fs, image, DeflateType::NoCompression, crcTable);
 
         printIEND(fs, crcTable);
         fs.close();
@@ -90,7 +75,7 @@ int main(int argc, char* argv[]) {
 
     //lz77 test
     if (false) {
-        ImageInfo<uint8_t> image(16,16,ColorType::TrueAlpha,Color(0.6,0.4,1,1));
+        ImageInfo image(16,16,ColorType::TrueAlpha,Color(0.6,0.4,1,1));
 
         vector<uint8_t> data = image.getDatastream();
 
@@ -118,33 +103,13 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo<uint8_t> image(100,100,ColorType::True,Color(1,0,0,1));
+        ImageInfo image(100,100,ColorType::True,Color(1,0.7,0,1));
         image.setFilters(FilterType::None);
         
         printSig(fs);
         printIDHR(fs,image,crcTable);
 
-        vector<uint8_t> data = image.getDatastream();
-        uint32_t adler = getADLER32(data);
-        vector<Code> codes = lz77_compress(data);
-        cout << "finished lz77" << endl;
-        data = vector<uint8_t>();
-        vector<uint8_t> compressed = huffman_static(codes, adler);
-        uint32_t length = compressed.size();
-        cout << "finished static" << endl;
-        codes = vector<Code>();
-        
-        stringstream ss;
-        ss << "IDAT";
-        for (uint8_t i : compressed) {
-            ss << i;
-        }
-        compressed = vector<uint8_t>();
-        uint32_t crc = getCRC32(ss,crcTable);
-
-        printInt(fs,length);
-        fs << ss.str();
-        printInt(fs,crc);
+        printIDAT(fs, image, DeflateType::StaticCodes, crcTable);
 
         printIEND(fs, crcTable);
         fs.close();

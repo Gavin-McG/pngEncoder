@@ -24,10 +24,10 @@ class Color {
     Color operator-(const Color &other);
     Color operator*(const Color &other);
 
-    float getGreyscale();
+    float getGreyscale() const;
 
     template<typename T>
-    vector<T> getbytes(ColorType colorType);
+    vector<T> getbytes(ColorType colorType) const;
 };
 
 Color operator*(const float f, const Color &color);
