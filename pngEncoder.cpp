@@ -3,7 +3,6 @@
 #include <fstream>
 #include <getopt.h>
 #include <string>
-#include "chunks.h"
 #include "utilities.h"
 #include "crc32.h"
 #include "imageInfo.h"
@@ -13,8 +12,6 @@
 #include "deflate.h"
 
 using namespace std;
-
-uint32_t crcTable[256];
 
 struct Options {
     string fileOut;
@@ -47,11 +44,6 @@ void getMode(int argc, char * argv[], Options &options) {
 
 int main(int argc, char* argv[]) {
 
-    //cout << ios_base::sync_with_stdio(false);
-
-    //generate CRC32 lookup table
-    generateCRC(crcTable);
-
     // Get the mode from the command line
     Options options;
     getMode(argc, argv, options);
@@ -62,14 +54,10 @@ int main(int argc, char* argv[]) {
         ofstream fs(options.fileOut);
 
         ImageInfo image(2000,2000,ColorType::True,Color(0.8,0.4,0.1,1));
-        image.setFilters(FilterType::Sub);
+        image.setFilters(FilterType::Paeth);
         
-        printSig(fs);
-        printIDHR(fs,image,crcTable);
-
-        printIDAT(fs, image, DeflateType::NoCompression, crcTable);
-
-        printIEND(fs, crcTable);
+        image.printPng(fs);
+        
         fs.close();
     }
 
@@ -103,15 +91,11 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo image(100,100,ColorType::True,Color(1,0.7,0,1));
-        image.setFilters(FilterType::None);
+        ImageInfo image(100,100,ColorType::True,Color(0.1,0.7,0.9,1));
+        image.setFilters(FilterType::Paeth);
         
-        printSig(fs);
-        printIDHR(fs,image,crcTable);
-
-        printIDAT(fs, image, DeflateType::StaticCodes, crcTable);
-
-        printIEND(fs, crcTable);
+        image.printPng(fs);
+        
         fs.close();
     }
 

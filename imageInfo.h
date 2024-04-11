@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "color.h"
 #include "utilities.h"
+#include "deflate.h"
+#include "crc32.h"
 
 using namespace std;
 
@@ -13,6 +15,9 @@ static const Color      DEFAULT_COLOR       = Color();
 
 //class used to store info of an image.
 class ImageInfo {
+    inline static uint32_t crcTable[256];
+    inline static bool crcGenerated = false;
+
     public:
     uint32_t width, height;
     BitDepth bitDepth;
@@ -32,9 +37,18 @@ class ImageInfo {
     vector<uint8_t> getScanline(size_t row, FilterType type) const;
     vector<uint8_t> getDatastream() const;
 
+    //output encoded png file to ostream
+    void printPng(ostream &os, DeflateType deflateType = DeflateType::StaticCodes) const;
+
     private:
     vector<vector<Color>> ref;
     vector<FilterType> filters;
+
+    //critical png components
+    void printSig(ostream &os) const;
+    void printIDHR(ostream &os) const;
+    void printIDAT(ostream &os, DeflateType deflateType) const;
+    void printIEND(ostream &os) const;
 };
 
 uint8_t paethPredictor(uint8_t a, uint8_t b, uint8_t c);
