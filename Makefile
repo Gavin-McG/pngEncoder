@@ -6,7 +6,7 @@ LIB_DIR := lib
 
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(SRC_DIR)/%.o,$(SRCS))
-TARGET := $(LIB_DIR)/PNG.so
+TARGET := $(LIB_DIR)/libPNG.so
 
 .PHONY: all clean
 
