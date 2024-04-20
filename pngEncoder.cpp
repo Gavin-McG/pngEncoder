@@ -3,6 +3,7 @@
 #include <fstream>
 #include <getopt.h>
 #include <string>
+#include <math.h>
 #include "utilities.h"
 #include "crc32.h"
 #include "imageInfo.h"
@@ -10,6 +11,18 @@
 #include "adler32.h"
 #include "lz77.h"
 #include "deflate.h"
+
+
+//TODO:
+
+//Dynamic coding
+//Lz77 hash optimization
+//bit depth 1-2-4
+//Indexed color
+//More drawing functions
+//meta-data
+//Interlacing
+
 
 using namespace std;
 
@@ -62,16 +75,16 @@ int main(int argc, char* argv[]) {
     }
 
     //static tests
-    if (true) {
+    if (false) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo image(100,100,ColorType::True,Color(0.1,0.7,0.9,1));
+        ImageInfo image(200,200,ColorType::Grey,Color(0.1,0.7,0.9,1));
         image.setFilters(FilterType::Paeth);
 
-        for (float i=0; i<100; i++) {
-            for (float j=0; j<100; ++j) {
-                if (uint(i+j)%2==0) image.drawPixel(i,j,Color(i/100,j/100,0.5,1));
+        for (float i=0; i<200; i++) {
+            for (float j=0; j<200; ++j) {
+                image.drawPixel(i,j,Color(i/200,j/200,0.5,1));
             }
         }
         
@@ -84,6 +97,31 @@ int main(int argc, char* argv[]) {
     if (false) {
         vector<uint8_t> vec = {0x00,0x00,0x00,0x00,0x00,0x00,0xff,0x00,0x00,0x00,0xff};
         lz77_compress(vec);
+    }
+
+    //filter test
+    if (true) {
+        //output
+        ofstream fs(options.fileOut);
+
+        ImageInfo image(200,200,ColorType::Grey,BitDepth::Eight,Color(0.1,0.7,0.9,1));
+        image.setFilters(FilterType::Average);
+
+        for (float i=0; i<200; i++) {
+            for (float j=0; j<200; ++j) {
+                if ((static_cast<int>(i+j)/5)%2==0) image.drawPixel(i,j,Color(i/200,j/200,0.5,1));
+            }
+        }
+
+        //ImageInfo kernel = getGaussian(9,3);
+        vector<vector<float>> vec = {{0,-1,0},{-1,4,-1},{0,-1,0}};
+        ImageInfo kernel(vec);
+        
+        ImageInfo filtered = image.filter(kernel,false);
+
+        filtered.printPng(fs,DeflateType::NoCompression);
+        
+        fs.close();
     }
 
     return 0;

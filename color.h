@@ -20,9 +20,15 @@ class Color {
 
     Color(const Color &c);
 
-    Color operator+(const Color &other);
-    Color operator-(const Color &other);
-    Color operator*(const Color &other);
+    Color operator+(const Color &other) const;
+    Color operator-(const Color &other) const;
+    Color operator*(const Color &other) const;
+    Color operator/(const Color &other) const;
+
+    Color& operator+=(const Color &other);
+    Color& operator-=(const Color &other);
+    Color& operator*=(const Color &other);
+    Color& operator/=(const Color &other);
 
     float getGreyscale() const;
 
@@ -32,6 +38,11 @@ class Color {
 
 Color operator*(const float f, const Color &color);
 Color operator*(const Color &color, const float f);
+
+Color operator/(const float f, const Color &color);
+Color operator/(const Color &color, const float f);
+
+ostream& operator<<(ostream &os, const Color &color);
 
 #include "color.tpp"
 
