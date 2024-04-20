@@ -2,4 +2,10 @@
 *.txt
 *.exe
 
-pngEncoder
+# Ignore the executable files
+/pngEncoder
+/pngDecoder
+
+# Keep the directories
+!/pngEncoder/
+!/pngDecoder/
