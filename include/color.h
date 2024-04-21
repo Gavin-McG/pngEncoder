@@ -20,6 +20,8 @@ class Color {
 
     Color(const Color &c);
 
+    Color& operator=(const Color& other);
+
     Color operator+(const Color &other) const;
     Color operator-(const Color &other) const;
     Color operator*(const Color &other) const;

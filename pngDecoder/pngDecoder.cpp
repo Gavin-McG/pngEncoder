@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <iomanip>
 
+#include "../include/imageInfo.h"
+
 using namespace std;
 
 struct Options {
@@ -36,17 +38,12 @@ void getMode(int argc, char * argv[], Options &options) {
 }
 
 int main(int argc, char* argv[]) {
-    cout << hex;
-
     Options options;
     getMode(argc, argv, options);
 
-    ifstream fs(options.fileIn);
+    ifstream fs(options.fileIn, ios::binary);
 
-    uint8_t data;
-    while (fs >> data) {
-        cout << data << '\n';
-    }
+    ImageInfo image(fs);
 
     fs.close();
 

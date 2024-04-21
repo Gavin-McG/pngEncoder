@@ -11,6 +11,16 @@ Color::Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
 Color::Color(const Color &c) : r(c.r), g(c.g), b(c.b), a(c.a) {}
 
 
+//assignment operator
+Color& Color::operator=(const Color& other) {
+    if (this != &other) {
+        r = other.r;
+        g = other.g;
+        b = other.b;
+        a = other.a;
+    }
+    return *this;
+}
 
 
 //operators

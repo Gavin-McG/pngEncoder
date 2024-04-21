@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <math.h>
 #include <vector>
+#include <iostream>
+#include <cstring>
 #include "color.h"
 #include "utilities.h"
 #include "deflate.h"
@@ -15,6 +17,22 @@ static const ColorType  DEFAULT_COLORTYPE   = ColorType::True;
 static const BitDepth   DEFAULT_BITDEPTH    = BitDepth::Eight;
 static const Color      DEFAULT_COLOR       = Color();
 
+struct HeaderInfo {
+    uint32_t width;
+    uint32_t height;
+    uint8_t bitDepth;
+    uint8_t colorType;
+    uint8_t compressionMethod;
+    uint8_t filterMethod;
+    uint8_t interlaceMethod;
+    uint8_t crc;
+};
+
+struct IDATInfo {
+    vector<uint8_t> dataStream;
+    uint32_t crc;
+};
+
 //class used to store info of an image.
 class ImageInfo {
     inline static uint32_t crcTable[256];
@@ -25,22 +43,31 @@ class ImageInfo {
     BitDepth bitDepth;
     ColorType colorType;
 
+    //default constructor
+    ImageInfo();
+
     //constructors (width, height + )
-    ImageInfo(uint32_t width, uint32_t height, ColorType colorType = ColorType::True, BitDepth bitdepth = BitDepth::Eight, const Color &color = Color());
-    ImageInfo(uint32_t width, uint32_t height, BitDepth bitdepth, const Color &color = Color());
-    ImageInfo(uint32_t width, uint32_t height, ColorType colorType, const Color &color = Color());
+    ImageInfo(uint32_t width, uint32_t height, ColorType colorType = DEFAULT_COLORTYPE, BitDepth bitdepth = DEFAULT_BITDEPTH, const Color &color = DEFAULT_COLOR);
+    ImageInfo(uint32_t width, uint32_t height, BitDepth bitdepth, const Color &color = DEFAULT_COLOR);
+    ImageInfo(uint32_t width, uint32_t height, ColorType colorType, const Color &color = DEFAULT_COLOR);
     ImageInfo(uint32_t width, uint32_t height, const Color &color);
 
     //conversion constructor
     template<typename T>
     requires integral<T> || floating_point<T>
-    ImageInfo(vector<vector<T>> values, ColorType colorType = ColorType::True, BitDepth bitDepth = BitDepth::Eight);
+    ImageInfo(vector<vector<T>> values, ColorType colorType = DEFAULT_COLORTYPE, BitDepth bitDepth = DEFAULT_BITDEPTH);
     template<typename T>
     requires integral<T> || floating_point<T>
     ImageInfo(vector<vector<T>> values, BitDepth bitDepth);
 
+    //constructor from png file
+    ImageInfo(istream &is);
+
     //copy constructor
     ImageInfo(const ImageInfo &other);
+
+    //assignment operator
+    ImageInfo& operator=(const ImageInfo &other);
 
     //filter functions
     void setFilters(FilterType type);
@@ -69,7 +96,15 @@ class ImageInfo {
     vector<uint8_t> getScanline(size_t row, FilterType type) const;
     vector<uint8_t> getDatastream() const;
 
-    //critical png components
+    //reading png components from istream
+    static bool verifySig(istream &is);
+    bool readChunk(istream &is);
+    HeaderInfo readIDHR(istream &is);
+    IDATInfo readIDAT(istream &is);
+    void readIEND(istream &is);
+    void readUnknown(istream &is);
+
+    //encoding critical png components
     void printSig(ostream &os) const;
     void printIDHR(ostream &os) const;
     void printIDAT(ostream &os, DeflateType deflateType) const;
