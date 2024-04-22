@@ -25,12 +25,10 @@ struct HeaderInfo {
     uint8_t compressionMethod;
     uint8_t filterMethod;
     uint8_t interlaceMethod;
-    uint8_t crc;
 };
 
 struct IDATInfo {
     vector<uint8_t> dataStream;
-    uint32_t crc;
 };
 
 //class used to store info of an image.
@@ -98,11 +96,11 @@ class ImageInfo {
 
     //reading png components from istream
     static bool verifySig(istream &is);
-    bool readChunk(istream &is);
-    HeaderInfo readIDHR(istream &is);
-    IDATInfo readIDAT(istream &is);
-    void readIEND(istream &is);
-    void readUnknown(istream &is);
+    bool        readChunk(istream &is);
+    void        readIHDR(char* data, size_t length);
+    IDATInfo    readIDAT(char* data, size_t length);
+    void        readIEND(char* data, size_t length);
+    void        readUnknown(char* data, size_t length);
 
     //encoding critical png components
     void printSig(ostream &os) const;

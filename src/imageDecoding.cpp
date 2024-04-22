@@ -43,8 +43,8 @@ bool ImageInfo::readChunk(istream &is) {
 
     //get crc
     uint32_t fileCRC = readInt<uint32_t>(is);
-    uint32_t generatedCRC = getCRC32(chunkName, crcTable);
-    generatedCRC = getCRC32(data, length, crcTable, generatedCRC);
+    uint32_t generatedCRC = getCRC32(chunkName, crcTable, false);
+    generatedCRC = getCRC32(data, length, crcTable, true, generatedCRC);
 
     if (fileCRC != generatedCRC) {
         cout << "CRC mismatch is chunk " << chunkName << endl;
@@ -52,6 +52,19 @@ bool ImageInfo::readChunk(istream &is) {
         cout << "caluculated CRC: " << generatedCRC << endl;
     }
 
+    //run chunk-specific computation
+    if (chunkName == "IHDR") {
+        cout << "reading IHDR chunk..." << endl; 
+        readIHDR(data, length);
+    }else if (chunkName == "IDAT") {
+        cout << "reading IDAT chunk..." << endl; 
+        readIDAT(data, length);
+    }else if (chunkName == "IEND") {
+        cout << "reading IEND chunk..." << endl;
+        readIEND(data, length);
+    }
+    
+    //deallocate and return
     delete[] data;
     return chunkName == "IEND";
 }
@@ -59,16 +72,26 @@ bool ImageInfo::readChunk(istream &is) {
 
 
 
-HeaderInfo ImageInfo::readIDHR(istream &is) {
-    HeaderInfo info;
+void ImageInfo::readIHDR(char* data, size_t length) {
+    if (length != 13) cout << "Inavlid length in IHDR chunk" << endl;
 
-    is >> info.width;
-    is >> info.height;
-    is >> info.bitDepth;
-    is >> info.colorType;
-    is >> info.compressionMethod;
-    is >> info.filterMethod;
-    is >> info.interlaceMethod;
+    width = packInt<uint32_t>(data);
+    height = packInt<uint32_t>(data+4);
+    bitDepth = static_cast<BitDepth>(packInt<uint8_t>(data+8));
+    colorType = static_cast<ColorType>(packInt<uint8_t>(data+9));
+}
 
+
+
+
+IDATInfo ImageInfo::readIDAT(char* data, size_t length) {
+    IDATInfo info;
     return info;
+}
+
+
+
+
+void ImageInfo::readIEND(char* data, size_t length) {
+    if (length != 0) cout << "Inavlid length in IEND chunk" << endl;
 }

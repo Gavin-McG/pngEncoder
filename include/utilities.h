@@ -19,13 +19,11 @@ enum FilterType : uint8_t {
 };
 
 enum ColorType : uint8_t {
-    Grey,
-    Invalid1,
-    True,
-    Indexed,
-    GreyAlpha,
-    Invalid2,
-    TrueAlpha
+    Grey = 0,
+    True = 2,
+    Indexed = 3,
+    GreyAlpha = 4,
+    TrueAlpha = 6
 };
 
 enum BitDepth : uint8_t {
@@ -73,6 +71,9 @@ uint16_t readInt<uint16_t>(istream &is);
 template<>
 uint32_t readInt<uint32_t>(istream &is);
 
+
+template<typename T>
+T packInt(char* data);
 
 
 #include "utilities.tpp"
