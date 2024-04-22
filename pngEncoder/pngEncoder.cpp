@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     getMode(argc, argv, options);
 
     //1x1 image test
-    if (true) {
+    if (false) {
         ofstream fs(options.fileOut);
 
         ImageInfo image(1,1,ColorType::True,Color(1,0,0));
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     }
 
     //filter test
-    if (false) {
+    if (true) {
         //output
         ofstream fs(options.fileOut);
 

@@ -56,7 +56,7 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
 
 
 
-void literalStatic(Bitstream &bs, uint16_t literal) {
+void literalStatic(iBitstream &bs, uint16_t literal) {
     if (literal<=143) {
         bs.push(48+literal,8);
     }else{
@@ -64,7 +64,7 @@ void literalStatic(Bitstream &bs, uint16_t literal) {
     }
 }
 
-void addLengthCode(Bitstream &bs, uint16_t length) {
+void addLengthCode(iBitstream &bs, uint16_t length) {
     //edge case 258
     if (length == 258) {
         lengthStatic(bs, 285);
@@ -93,7 +93,7 @@ void addLengthCode(Bitstream &bs, uint16_t length) {
     bs.pushReverse(r1,xbits);
 }
 
-void lengthStatic(Bitstream &bs, uint16_t lengthCode) {
+void lengthStatic(iBitstream &bs, uint16_t lengthCode) {
     if (lengthCode <= 279) {
         bs.push((lengthCode-256),7);
     }else{
@@ -101,7 +101,7 @@ void lengthStatic(Bitstream &bs, uint16_t lengthCode) {
     }
 }
 
-void addDistanceCode(Bitstream &bs, uint16_t distance) {
+void addDistanceCode(iBitstream &bs, uint16_t distance) {
     //shift length into range 0-255
     uint16_t shifted = distance-1;
 
@@ -124,7 +124,7 @@ void addDistanceCode(Bitstream &bs, uint16_t distance) {
     bs.pushReverse(r1,xbits);
 }
 
-void distanceStatic(Bitstream &bs, uint16_t distanceCode) {
+void distanceStatic(iBitstream &bs, uint16_t distanceCode) {
     bs.push(distanceCode, 5);
 }
 
@@ -139,7 +139,7 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     vec.push_back(flg+FCheck(cmf,flg));
 
     //bitstream
-    Bitstream bs;
+    iBitstream bs;
 
     //header
     bs.push(static_cast<uint8_t>(0x06),3); //last block, static codes

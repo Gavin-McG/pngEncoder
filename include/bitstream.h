@@ -6,10 +6,10 @@
 
 using namespace std;
 
-class  Bitstream {
+class  iBitstream {
     public:
 
-    Bitstream() : current(0), bits(0) {}
+    iBitstream() : current(0), bits(0) {}
 
     template<typename T>
     void push(T integer);
@@ -38,5 +38,29 @@ class  Bitstream {
     //takes either a 0 or 1 as input and pushes it into the stream
     void pushBit(uint8_t bit);
 };
+
+
+
+class oBitstream {
+    public:
+
+    oBitstream(char* data) : index(0), bits(0), data(data) {}
+
+    template<typename T>
+    T get(size_t bits);
+
+    template<typename T>
+    T getReverse(size_t bits);
+
+    uint8_t nextBit();
+    void skipByte();
+
+    private:
+    uint8_t index;
+    uint8_t bits;
+    char* data;
+};
+
+
 
 #endif
