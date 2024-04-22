@@ -44,8 +44,10 @@ int main(int argc, char* argv[]) {
     ifstream fs(options.fileIn, ios::binary);
 
     ImageInfo image(fs);
-
     fs.close();
+
+    cout << image.width << ' ' << image.height << endl;
+    cout << static_cast<int>(image.bitDepth) << ' ' << static_cast<int>(image.colorType) << endl;
 
     return 0;
 }
