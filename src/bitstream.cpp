@@ -43,8 +43,18 @@ void iBitstream::pushBit(uint8_t bit) {
 
 
 
+size_t oBitstream::size() {
+    return length;
+}
+
+bool oBitstream::empty() {
+    return index>=length;
+}
+
 uint8_t oBitstream::nextBit() {
-    uint8_t result = (data[index]<<bits)%2;
+    if (empty()) return 0;
+    uint8_t result = (static_cast<uint8_t>(data[index])>>bits)%2;
+    //cout << "index: " << static_cast<int>(index) << "  bit: " << static_cast<int>(bits) << "  val: " << static_cast<int>(result) << endl;
     ++bits;
 
     //add current to vector

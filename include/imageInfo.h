@@ -17,19 +17,9 @@ static const ColorType  DEFAULT_COLORTYPE   = ColorType::True;
 static const BitDepth   DEFAULT_BITDEPTH    = BitDepth::Eight;
 static const Color      DEFAULT_COLOR       = Color();
 
-struct HeaderInfo {
-    uint32_t width;
-    uint32_t height;
-    uint8_t bitDepth;
-    uint8_t colorType;
-    uint8_t compressionMethod;
-    uint8_t filterMethod;
-    uint8_t interlaceMethod;
-};
-
-struct IDATInfo {
-    vector<uint8_t> dataStream;
-};
+static const uint8_t UINT4_MAX = 15;
+static const uint8_t UINT2_MAX = 3;
+static const uint8_t UINT1_MAX = 1;
 
 //class used to store info of an image.
 class ImageInfo {
@@ -94,11 +84,14 @@ class ImageInfo {
     vector<uint8_t> getScanline(size_t row, FilterType type) const;
     vector<uint8_t> getDatastream() const;
 
+    void setScanline(size_t row, vector<uint8_t> &literals);
+    void setImage(vector<uint8_t> &literals);
+
     //reading png components from istream
     static bool verifySig(istream &is);
-    bool        readChunk(istream &is);
+    bool        readChunk(istream &is, vector<uint8_t> &literals);
     void        readIHDR(char* data, size_t length);
-    IDATInfo    readIDAT(char* data, size_t length);
+    void        readIDAT(char* data, size_t length, vector<uint8_t> &literals);
     void        readIEND(char* data, size_t length);
     void        readUnknown(char* data, size_t length);
 

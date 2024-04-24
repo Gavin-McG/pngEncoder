@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -44,7 +45,11 @@ class  iBitstream {
 class oBitstream {
     public:
 
-    oBitstream(char* data) : index(0), bits(0), data(data) {}
+    oBitstream(char* data, size_t length) : index(0), bits(0), data(data), length(length) {}
+
+    size_t size();
+
+    bool empty();
 
     template<typename T>
     T get(size_t bits);
@@ -59,6 +64,7 @@ class oBitstream {
     uint8_t index;
     uint8_t bits;
     char* data;
+    size_t length;
 };
 
 

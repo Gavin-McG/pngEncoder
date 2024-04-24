@@ -25,4 +25,6 @@ struct Code {
 
 vector<Code> lz77_compress(vector<uint8_t> &literals);
 
+vector<uint8_t> lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals);
+
 #endif

@@ -44,13 +44,13 @@ vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler);
 vector<Code> huffman_decompress(char* data, size_t length);
 
 //decompress data of uncompressed format
-vector<Code> decompress_uncompressed();
+void decompress_uncompressed(oBitstream &bs, vector<Code> &codes);
 
 //decompress data of static format
-vector<Code> decompress_static();
+void decompress_static(oBitstream &bs, vector<Code> &codes);
 
 //decompress data of dynamic format
-vector<Code> decompress_dynamic();
+void decompress_dynamic(oBitstream &bs, vector<Code> &codes);
 
 
 

@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         
         ImageInfo filtered = image.filter(kernel,false);
 
-        filtered.printPng(fs,DeflateType::NoCompression);
+        filtered.printPng(fs,DeflateType::StaticCodes);
         
         fs.close();
     }

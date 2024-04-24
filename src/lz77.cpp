@@ -44,3 +44,22 @@ vector<Code> lz77_compress(vector<uint8_t> &literals) {
 
     return encoded;
 }
+
+
+
+vector<uint8_t> lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals) {
+    for (size_t i=0;i<codes.size();++i) {
+        if (codes[i].type == CodeType::Literal) {
+            literals.push_back(codes[i].val);
+        }else if (codes[i].type == CodeType::Length) {
+            if (i+1 == codes.size() || codes[i+1].type != CodeType::Distance) cout << "lz77 length code missing distance code" << endl;
+            for (size_t j=literals.size()-codes[i].val, k=0; k<codes[i+1].val; ++k, ++j) {
+                literals.push_back(literals[j]);
+            }
+        }else{
+            cout << "Invalid lz77 code order - skipping distance code" << endl;
+        }
+    }
+
+    return literals;
+}

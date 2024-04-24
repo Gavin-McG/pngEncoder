@@ -10,8 +10,40 @@ ImageInfo::ImageInfo(istream &is) {
         return;
     }
 
-    while(!readChunk(is));
+    //get data from all chunks
+    vector<uint8_t> literals;
+    while(!readChunk(is, literals));
+
+    int expected = width*height*max(1,static_cast<int>(bitDepth)/8) + height;
+    if (literals.size() != expected) {
+        cout << "number of literals doesn't match with expected bytes" << endl;
+        cout << "expeded: " << expected << endl;
+        cout << "read: " << literals.size() << endl;
+    }
+
+    //pack literals into colors
+    setImage(literals);
 }
+
+
+
+
+
+
+
+
+
+void ImageInfo::setImage(vector<uint8_t> &literals) {
+    for (size_t i=0; i<literals.size(); i++) {
+        cout << static_cast<int>(literals[i]) << ' ';
+    }
+}
+
+
+
+
+
+
 
 
 
@@ -25,7 +57,10 @@ bool ImageInfo::verifySig(istream &is) {
 }
 
 
-bool ImageInfo::readChunk(istream &is) {
+bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals) {
+    //check that is is still valid
+    if (is.eof()) return true;
+
     //read length
     uint32_t length = readInt<uint32_t>(is);
     
@@ -58,10 +93,12 @@ bool ImageInfo::readChunk(istream &is) {
         readIHDR(data, length);
     }else if (chunkName == "IDAT") {
         cout << "reading IDAT chunk..." << endl; 
-        readIDAT(data, length);
+        readIDAT(data, length, literals);
     }else if (chunkName == "IEND") {
         cout << "reading IEND chunk..." << endl;
         readIEND(data, length);
+    }else{
+        cout << "skipping over " << chunkName << " chunk" << endl;
     }
     
     //deallocate and return
@@ -84,9 +121,25 @@ void ImageInfo::readIHDR(char* data, size_t length) {
 
 
 
-IDATInfo ImageInfo::readIDAT(char* data, size_t length) {
-    IDATInfo info;
-    return info;
+void ImageInfo::readIDAT(char* data, size_t length, vector<uint8_t> &literals) {
+    uint8_t CMF = packInt<uint8_t>(data);
+    uint8_t FLG = packInt<uint8_t>(data);
+
+    vector<Code> codes = huffman_decompress(data+2, length-6);
+
+    lz77_decompress(codes, literals);
+
+    uint32_t fileAdler = packInt<uint32_t>(data+length-4);
+    uint32_t generatedAdler = getADLER32(literals);
+
+    if (fileAdler != generatedAdler) {
+        cout << "ADLER32 mismatch in decompressed data" << endl;
+        cout << "read Adler: " << fileAdler << endl;
+        cout << "caluculated Adler: " << generatedAdler << endl;
+        cout << "# of literals: " << literals.size() << endl;
+        cout << "# of codes: " << codes.size() << endl;
+        cout << static_cast<int>(literals[0]) << endl;
+    }
 }
 
 
