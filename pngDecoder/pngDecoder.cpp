@@ -17,13 +17,13 @@ void getMode(int argc, char * argv[], Options &options) {
     int choice;
     int index = 0;
     option long_options[] = {
-        { "output",  required_argument,    nullptr, 'o'},
+        { "input",  required_argument,    nullptr, 'i'},
         { nullptr, 0, nullptr, '\0' }
     };  // long_options[]
 
-    while ((choice = getopt_long(argc, argv, "o:", long_options, &index)) != -1) {
+    while ((choice = getopt_long(argc, argv, "i:", long_options, &index)) != -1) {
         switch (choice) {
-            case 'o':
+            case 'i':
                 options.fileIn = optarg;
                 break;
 
