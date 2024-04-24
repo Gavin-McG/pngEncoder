@@ -235,10 +235,16 @@ void decompress_uncompressed(oBitstream &bs, vector<Code> &codes) {
     uint16_t length = bs.getReverse<uint16_t>(16);
     uint16_t nlength = bs.getReverse<uint16_t>(16);
 
-    if (length ^ nlength != UINT16_MAX) cout << "LEN and NLEN do not match" << endl;
+    if ((length^nlength) != UINT16_MAX) {
+        cout << "LEN and NLEN do not match" << endl;
+        cout << "\tlength: " << length << endl;
+        cout << "\tnlength: " << nlength << endl;
+        cout << "\tXOR: " << (length^nlength) << endl;
+    }
 
     for (size_t i=0;i<length; ++i) {
         codes.emplace_back(CodeType::Literal,bs.getReverse<uint16_t>(8));
+        bs.size();
     }
 }
 

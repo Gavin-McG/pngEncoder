@@ -14,12 +14,15 @@ ImageInfo::ImageInfo(istream &is) {
     vector<uint8_t> literals;
     while(!readChunk(is, literals));
 
-    int expected = width*height*max(1,static_cast<int>(bitDepth)/8) + height;
+    int expected = height * getScanlineSize();
     if (literals.size() != expected) {
         cout << "number of literals doesn't match with expected bytes" << endl;
-        cout << "expeded: " << expected << endl;
-        cout << "read: " << literals.size() << endl;
+        cout << "\texpeded: " << expected << endl;
+        cout << "\tread: " << literals.size() << endl;
     }
+
+    filters.resize(height);
+    ref = vector<vector<Color>>(height,vector<Color>(width));
 
     //pack literals into colors
     setImage(literals);
@@ -34,11 +37,60 @@ ImageInfo::ImageInfo(istream &is) {
 
 
 void ImageInfo::setImage(vector<uint8_t> &literals) {
-    for (size_t i=0; i<literals.size(); i++) {
-        cout << static_cast<int>(literals[i]) << ' ';
+    for (size_t i=0;i<height;++i) {
+        setScanline(i, literals);
     }
 }
 
+void ImageInfo::setScanline(size_t row, vector<uint8_t> &literals) {
+    cout << "writing row: " << row << endl;
+    size_t rowSize = getScanlineSize();
+    size_t rowStart = rowSize*row;
+
+    filters[row] = static_cast<FilterType>(literals[rowStart]);
+    if (literals[rowStart]>4) {
+        cout << "Inavlid filter value found" << endl;
+    }
+
+    switch(colorType) {
+        case ColorType::Grey:
+            for (size_t i=0;i<width;++i) {
+                float v = (1.0f / UINT8_MAX) * literals[rowStart+i+1];
+                ref[row][i] = Color(v);
+            }
+            break;
+        case ColorType::True:
+            for (size_t i=0;i<width;++i) {
+                float r = (1.0f / UINT8_MAX) * literals[rowStart+3*i+1];
+                float g = (1.0f / UINT8_MAX) * literals[rowStart+3*i+2];
+                float b = (1.0f / UINT8_MAX) * literals[rowStart+3*i+3];
+                ref[row][i] = Color(r,g,b);
+            }
+            break;
+        case ColorType::Indexed:
+            cout << "indexed coming soon" << endl;
+            break;
+        case ColorType::GreyAlpha:
+            for (size_t i=0;i<width;++i) {
+                float v = (1.0f / UINT8_MAX) * literals[rowStart+2*i+1];
+                float a = (1.0f / UINT8_MAX) * literals[rowStart+2*i+2];
+                ref[row][i] = Color(v,a);
+            }
+            break;
+        case ColorType::TrueAlpha:
+            for (size_t i=0;i<width;++i) {
+                float r = (1.0f / UINT8_MAX) * literals[rowStart+4*i+1];
+                float g = (1.0f / UINT8_MAX) * literals[rowStart+4*i+2];
+                float b = (1.0f / UINT8_MAX) * literals[rowStart+4*i+3];
+                float a = (1.0f / UINT8_MAX) * literals[rowStart+4*i+4];
+                ref[row][i] = Color(r,g,b,a);
+            }
+            break;
+        default:
+            cout << "invalid colorType" << endl;
+            break;
+    }
+}
 
 
 
@@ -83,8 +135,8 @@ bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals) {
 
     if (fileCRC != generatedCRC) {
         cout << "CRC mismatch is chunk " << chunkName << endl;
-        cout << "read CRC: " << fileCRC << endl;
-        cout << "caluculated CRC: " << generatedCRC << endl;
+        cout << "\tread CRC: " << fileCRC << endl;
+        cout << "\tcaluculated CRC: " << generatedCRC << endl;
     }
 
     //run chunk-specific computation
@@ -127,6 +179,11 @@ void ImageInfo::readIDAT(char* data, size_t length, vector<uint8_t> &literals) {
 
     vector<Code> codes = huffman_decompress(data+2, length-6);
 
+    for (size_t i=0;i<codes.size();++i) {
+        cout << codes[i].val << " ";
+    }
+    cout << endl;
+
     lz77_decompress(codes, literals);
 
     uint32_t fileAdler = packInt<uint32_t>(data+length-4);
@@ -134,11 +191,11 @@ void ImageInfo::readIDAT(char* data, size_t length, vector<uint8_t> &literals) {
 
     if (fileAdler != generatedAdler) {
         cout << "ADLER32 mismatch in decompressed data" << endl;
-        cout << "read Adler: " << fileAdler << endl;
-        cout << "caluculated Adler: " << generatedAdler << endl;
-        cout << "# of literals: " << literals.size() << endl;
-        cout << "# of codes: " << codes.size() << endl;
-        cout << static_cast<int>(literals[0]) << endl;
+        cout << "\tread Adler: " << fileAdler << endl;
+        cout << "\tcaluculated Adler: " << generatedAdler << endl;
+        cout << "\t# of literals: " << literals.size() << endl;
+        cout << "\t# of codes: " << codes.size() << endl;
+        cout << '\t' << static_cast<int>(literals[0]) << endl;
     }
 }
 

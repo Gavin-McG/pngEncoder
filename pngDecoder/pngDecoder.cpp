@@ -10,6 +10,7 @@ using namespace std;
 
 struct Options {
     string fileIn;
+    string fileOut;
 };
 
 void getMode(int argc, char * argv[], Options &options) {
@@ -18,15 +19,18 @@ void getMode(int argc, char * argv[], Options &options) {
     int index = 0;
     option long_options[] = {
         { "input",  required_argument,    nullptr, 'i'},
+        { "output",  required_argument,    nullptr, 'o'},
         { nullptr, 0, nullptr, '\0' }
     };  // long_options[]
 
-    while ((choice = getopt_long(argc, argv, "i:", long_options, &index)) != -1) {
+    while ((choice = getopt_long(argc, argv, "i:o:", long_options, &index)) != -1) {
         switch (choice) {
             case 'i':
                 options.fileIn = optarg;
                 break;
-
+            case 'o':
+                options.fileOut = optarg;
+                break;
             default:
                 cerr << "Error: invalid option" << "\n";
                 exit(1);
@@ -35,19 +39,29 @@ void getMode(int argc, char * argv[], Options &options) {
 
     //default file name
     if (options.fileIn == "") options.fileIn = "default.png";
+    if (options.fileOut == "") options.fileOut = "default.png";
 }
 
 int main(int argc, char* argv[]) {
     Options options;
     getMode(argc, argv, options);
 
-    ifstream fs(options.fileIn, ios::binary);
+    if (true) {
+        ifstream fs(options.fileIn, ios::binary);
+        ImageInfo image(fs);
+        fs.close();
 
-    ImageInfo image(fs);
-    fs.close();
+        ofstream fs2(options.fileOut);
+        image.printPng(fs2,DeflateType::NoCompression);
+        fs2.close();
+    }
 
-    cout << image.width << ' ' << image.height << endl;
-    cout << static_cast<int>(image.bitDepth) << ' ' << static_cast<int>(image.colorType) << endl;
+    if (false) {
+        ImageInfo image(30,30,Color(1,0,0));
+        ofstream fs(options.fileOut);
+        image.printPng(fs,DeflateType::NoCompression);
+        fs.close();
+    }
 
     return 0;
 }

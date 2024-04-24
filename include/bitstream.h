@@ -61,7 +61,7 @@ class oBitstream {
     void skipByte();
 
     private:
-    uint8_t index;
+    size_t index;
     uint8_t bits;
     char* data;
     size_t length;
