@@ -86,6 +86,9 @@ class ImageInfo {
 
     void setScanline(size_t row, vector<uint8_t> &literals);
     void setImage(vector<uint8_t> &literals);
+    void reverseFilters();
+    template <typename T>
+    void reverseScanline(size_t row);
 
     //reading png components from istream
     static bool verifySig(istream &is);

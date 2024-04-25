@@ -51,9 +51,13 @@ int main(int argc, char* argv[]) {
         ImageInfo image(fs);
         fs.close();
 
+        image.colorType = ColorType::TrueAlpha;
+
         ofstream fs2(options.fileOut);
         image.printPng(fs2,DeflateType::NoCompression);
         fs2.close();
+
+        cout << image.getPixel(10,10) << endl;
     }
 
     if (false) {

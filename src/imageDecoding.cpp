@@ -40,6 +40,7 @@ void ImageInfo::setImage(vector<uint8_t> &literals) {
     for (size_t i=0;i<height;++i) {
         setScanline(i, literals);
     }
+    reverseFilters();
 }
 
 void ImageInfo::setScanline(size_t row, vector<uint8_t> &literals) {
@@ -55,16 +56,16 @@ void ImageInfo::setScanline(size_t row, vector<uint8_t> &literals) {
     switch(colorType) {
         case ColorType::Grey:
             for (size_t i=0;i<width;++i) {
-                float v = (1.0f / UINT8_MAX) * literals[rowStart+i+1];
-                ref[row][i] = Color(v);
+                uint8_t v = literals[rowStart+i+1];
+                ref[row][i] = Color(v)/UINT8_MAX;
             }
             break;
         case ColorType::True:
             for (size_t i=0;i<width;++i) {
-                float r = (1.0f / UINT8_MAX) * literals[rowStart+3*i+1];
-                float g = (1.0f / UINT8_MAX) * literals[rowStart+3*i+2];
-                float b = (1.0f / UINT8_MAX) * literals[rowStart+3*i+3];
-                ref[row][i] = Color(r,g,b);
+                uint8_t r = literals[rowStart+3*i+1];
+                uint8_t g = literals[rowStart+3*i+2];
+                uint8_t b = literals[rowStart+3*i+3];
+                ref[row][i] = Color(r,g,b)/UINT8_MAX;
             }
             break;
         case ColorType::Indexed:
@@ -72,23 +73,30 @@ void ImageInfo::setScanline(size_t row, vector<uint8_t> &literals) {
             break;
         case ColorType::GreyAlpha:
             for (size_t i=0;i<width;++i) {
-                float v = (1.0f / UINT8_MAX) * literals[rowStart+2*i+1];
-                float a = (1.0f / UINT8_MAX) * literals[rowStart+2*i+2];
-                ref[row][i] = Color(v,a);
+                uint8_t v = literals[rowStart+2*i+1];
+                uint8_t a = literals[rowStart+2*i+2];
+                ref[row][i] = Color(v,a)/UINT8_MAX;
             }
             break;
         case ColorType::TrueAlpha:
             for (size_t i=0;i<width;++i) {
-                float r = (1.0f / UINT8_MAX) * literals[rowStart+4*i+1];
-                float g = (1.0f / UINT8_MAX) * literals[rowStart+4*i+2];
-                float b = (1.0f / UINT8_MAX) * literals[rowStart+4*i+3];
-                float a = (1.0f / UINT8_MAX) * literals[rowStart+4*i+4];
-                ref[row][i] = Color(r,g,b,a);
+                uint8_t r = literals[rowStart+4*i+1];
+                uint8_t g = literals[rowStart+4*i+2];
+                uint8_t b = literals[rowStart+4*i+3];
+                uint8_t a = literals[rowStart+4*i+4];
+                ref[row][i] = Color(r,g,b,a)/UINT8_MAX;
             }
             break;
         default:
             cout << "invalid colorType" << endl;
             break;
+    }
+}
+
+
+void ImageInfo::reverseFilters() {
+    for (uint32_t i=0;i<height; ++i) {
+        reverseScanline<uint8_t>(i);
     }
 }
 

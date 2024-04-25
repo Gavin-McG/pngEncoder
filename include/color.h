@@ -8,15 +8,22 @@
 
 using namespace std;
 
+
+
 class Color {
     public:
     float r,g,b,a;
 
     Color();
+
+    //float constructors
     Color(float v);
     Color(float v, float a);
     Color(float r, float g, float b);
     Color(float r, float g, float b, float a);
+    
+    template<typename T>
+    Color(vector<T> vec);
 
     Color(const Color &c);
 

@@ -2,6 +2,7 @@
 
 //constructors
 Color::Color() : r(0), g(0), b(0), a(1) {}
+
 Color::Color(float v) : r(v), g(v), b(v), a(1) {}
 Color::Color(float v, float a) : r(v), g(v), b(v), a(a) {}
 Color::Color(float r, float g, float b) : r(r), g(g), b(b), a(1) {}
