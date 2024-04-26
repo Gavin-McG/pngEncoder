@@ -84,32 +84,33 @@ void ImageInfo::filterBytes(vector<vector<uint8_t>> &bytes) const {
             case FilterType::None:
                 break;
             case FilterType::Sub:
-                for (size_t j=bytes[i].size(); j>0; --j) {
-                    a =  (j<=byteShift)?0:bytes[i][j-byteShift];
+                for (size_t j=bytes[i].size()-1; j>0; --j) {
+                    a = (j<=byteShift)?0:bytes[i][j-byteShift];
                     bytes[i][j] -= a;
                 }
                 break;
             case FilterType::Up:
-                for (size_t j=bytes[i].size(); j>0; --j) {
+                for (size_t j=bytes[i].size()-1; j>0; --j) {
                     b = (i==0)?0:bytes[i-1][j];
                     bytes[i][j] -= b;
                 }
                 break;
             case FilterType::Average:
-                for (size_t j=bytes[i].size(); j>0; --j) {
+                for (size_t j=bytes[i].size()-1; j>0; --j) {
                     a = (j<=byteShift)?0:bytes[i][j-byteShift];
                     b = (i==0)?0:bytes[i-1][j];
                     bytes[i][j] -= ((b+a)>>1);
                 }
                 break;
             case FilterType::Paeth:
-                for (size_t j=bytes[i].size(); j>0; --j) {
-                    a =  (j<=byteShift)?0:bytes[i][j-byteShift];
+                for (size_t j=bytes[i].size()-1; j>0; --j) {
+                    a = (j<=byteShift)?0:bytes[i][j-byteShift];
                     b = (i==0)?0:bytes[i-1][j];
                     c = (i==0||j<=byteShift)?0:bytes[i-1][j-byteShift];
                     bytes[i][j] -= paethPredictor(a,b,c);
                 }
                 break;
+            default: break;
         }
     }
 }

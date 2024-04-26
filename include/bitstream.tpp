@@ -36,19 +36,30 @@ void iBitstream::pushLR(T integer, size_t bits) {
 
 
 template<typename T>
-T oBitstream::get(size_t bits) {
+T oBitstream::getRL() {
+    return getRL<T>(sizeof(T)*8);
+}
+
+template<typename T>
+T oBitstream::getRL(size_t bits) {
     T result = 0;
-    for (size_t i=0;i<bits;++i) {
-        result = (result<<1) + nextBit();
+    for (size_t i=0; i<bits; ++i) {
+        result += (getBit()<<i);
     }
     return result;
 }
 
+
 template<typename T>
-T oBitstream::getReverse(size_t bits) {
+T oBitstream::getLR() {
+    return getLR<T>(sizeof(T)*8);
+}
+
+template<typename T>
+T oBitstream::getLR(size_t bits) {
     T result = 0;
-    for (size_t i=0;i<bits;++i) {
-        result += nextBit()<<i;
+    for (size_t i=1; i<=bits; ++i) {
+        result += (getBit()<<(bits-i));
     }
     return result;
 }

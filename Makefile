@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++20 -Wall -Wextra -pedantic -fPIC
+CXXFLAGS := -std=c++20 -O3 -Wall -Wextra -pedantic -fPIC
 LDFLAGS := -shared
 SRC_DIR := src
 LIB_DIR := lib

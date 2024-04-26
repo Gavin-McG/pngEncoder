@@ -1,6 +1,14 @@
 #include "../include/bitstream.h"
 
 
+void iBitstream::nextByte(bool force) {
+    if (bits>0 || force) {
+        stream.push_back(current);
+        bits = 0;
+        current = 0;
+    }
+}
+
 size_t iBitstream::sizeBytes() {
     return stream.size() + (bits>0?1:0);
 }
@@ -54,30 +62,38 @@ void iBitstream::pushBit(uint8_t bit) {
 
 
 
-size_t oBitstream::size() {
-    return length;
-}
-
-bool oBitstream::empty() {
-    return index>=length;
-}
-
-uint8_t oBitstream::nextBit() {
-    if (empty()) return 0;
-    uint8_t result = (static_cast<uint8_t>(data[index])>>bits)%2;
-    //cout << "index: " << static_cast<int>(index) << "  bit: " << static_cast<int>(bits) << "  val: " << static_cast<int>(result) << endl;
-    ++bits;
-
-    //add current to vector
-    if (bits==8) {
+void oBitstream::nextByte(bool force) {
+    if (bits>0 || force) {
         ++index;
         bits = 0;
     }
-
-    return result;
 }
 
-void oBitstream::skipByte() {
-    ++index;
+bool oBitstream::empty() {
+    return index==stream.size();
+}
+
+void oBitstream::clear() {
+    stream = vector<uint8_t>();
+    index = 0;
     bits = 0;
+}
+
+void oBitstream::setOrder(BitOrder newOrder) {
+    nextByte(false);
+    order = newOrder;
+}
+
+uint8_t oBitstream::getBit() {
+    if (empty()) return 0;
+
+    uint8_t result = (stream[index] >> (order==BitOrder::LSBitFirst ? bits : 7-bits))%2;
+
+    ++bits;
+    if (bits==8) {
+        ++index;
+        bits=0;
+    }
+
+    return result;
 }

@@ -33,11 +33,9 @@ vector<Code> lz77_compress(vector<uint8_t> &literals) {
             encoded.push_back(Code(CodeType::Length,maxLength));
             encoded.push_back(Code(CodeType::Distance,distance));
             i+=maxLength;
-            //cout << maxLength << ' ' << distance << endl;
         }else{
             //add literal to codes
             encoded.push_back(Code(CodeType::Literal,literals[i]));
-            //cout << 1 << ' ' << literals[i] << endl;
             ++i;
         }
     }
@@ -47,7 +45,7 @@ vector<Code> lz77_compress(vector<uint8_t> &literals) {
 
 
 
-vector<uint8_t> lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals) {
+void lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals) {
     for (size_t i=0;i<codes.size();++i) {
         if (codes[i].type == CodeType::Literal) {
             literals.push_back(codes[i].val);
@@ -60,6 +58,4 @@ vector<uint8_t> lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals) 
             cout << "Invalid lz77 code order - skipping distance code" << endl;
         }
     }
-
-    return literals;
 }

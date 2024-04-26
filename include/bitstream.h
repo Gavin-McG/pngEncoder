@@ -27,6 +27,8 @@ class iBitstream {
     template<typename T>
     void pushLR(T integer, size_t bits);
 
+    void nextByte(bool force = false);
+
     size_t sizeBytes();
     size_t sizeBits();
 
@@ -54,26 +56,32 @@ class iBitstream {
 class oBitstream {
     public:
 
-    oBitstream(char* data, size_t length) : index(0), bits(0), data(data), length(length) {}
+    oBitstream(vector<uint8_t> data, BitOrder order = BitOrder::LSBitFirst) : index(0), bits(0), order(order), stream(data) {}
 
-    size_t size();
+    template<typename T>
+    T getRL();
+    template<typename T>
+    T getRL(size_t bits);
+
+    template<typename T>
+    T getLR();
+    template<typename T>
+    T getLR(size_t bits);
+
+    void nextByte(bool force = false);
 
     bool empty();
+    void clear();
 
-    template<typename T>
-    T get(size_t bits);
-
-    template<typename T>
-    T getReverse(size_t bits);
-
-    uint8_t nextBit();
-    void skipByte();
+    void setOrder(BitOrder newOrder);
 
     private:
     size_t index;
     uint8_t bits;
-    char* data;
-    size_t length;
+    BitOrder order;
+    vector<uint8_t> stream;
+
+    uint8_t getBit();
 };
 
 

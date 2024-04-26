@@ -41,7 +41,7 @@ vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler);
 //decompression methods
 
 //take a set of bytes and decompress using deflate methods
-vector<Code> huffman_decompress(char* data, size_t length);
+vector<Code> huffman_decompress(oBitstream &bs);
 
 //decompress data of uncompressed format
 void decompress_uncompressed(oBitstream &bs, vector<Code> &codes);

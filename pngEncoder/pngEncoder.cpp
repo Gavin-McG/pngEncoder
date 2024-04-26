@@ -111,22 +111,21 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo image(200,200,ColorType::True,BitDepth::Sixteen,Color(0.1,0.7,0.9,1));
+        ImageInfo image(500,500,ColorType::True,BitDepth::Eight,Color(0.1,0.7,0.9,1));
         image.setFilters(FilterType::Average);
 
-        for (float i=0; i<200; i++) {
-            for (float j=0; j<200; ++j) {
-                if ((static_cast<int>(i+j)/5)%2==0) image.drawPixel(i,j,Color(i/200,j/200,0.5,1));
+        for (float i=0; i<500; i++) {
+            for (float j=0; j<500; ++j) {
+                if ((static_cast<int>(i+j)/5)%2==0) image.drawPixel(i,j,Color(i/500,j/500,0.5,1));
             }
         }
 
         //ImageInfo kernel = getGaussian(9,3);
-        vector<vector<float>> vec = {{0,-1,0},{-1,4,-1},{0,-1,0}};
-        ImageInfo kernel(vec);
+        ImageInfo kernel = getGaussian(5,2);
         
         ImageInfo filtered = image.filter(kernel,false);
 
-        filtered.printPng(fs,DeflateType::NoCompression);
+        filtered.printPng(fs,DeflateType::StaticCodes);
         
         fs.close();
     }

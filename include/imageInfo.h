@@ -79,20 +79,26 @@ class ImageInfo {
     vector<vector<Color>> ref;
     vector<FilterType> filters;
 
+    
+    //decoding helper functions
+    vector<vector<uint8_t>> unflattenBytes(vector<uint8_t> &bytes) const;
+    void unfilterBytes(vector<vector<uint8_t>> &bytes) const;
+    void setScanline(size_t row, vector<uint8_t> &bytes);
+    void setImageBytes(vector<vector<uint8_t>> &bytes);
+
+    //reading png components from istream
+    static bool verifySig(istream &is);
+    bool readChunk(istream &is, vector<uint8_t> &literals);
+    void readIHDR(vector<uint8_t> &data);
+    void readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals);
+    void readIEND(vector<uint8_t> &data);
+    void readUnknown(vector<uint8_t> &data);
+
     //encoding helper functions
     vector<uint8_t> getScanline(size_t row) const;
     vector<vector<uint8_t>> getImageBytes() const;
     void filterBytes(vector<vector<uint8_t>> &bytes) const;
     vector<uint8_t> flattenBytes(vector<vector<uint8_t>> &bytes) const;
-    
-
-    //reading png components from istream
-    static bool verifySig(istream &is);
-    bool        readChunk(istream &is, vector<uint8_t> &literals);
-    void        readIHDR(char* data, size_t length);
-    void        readIDAT(char* data, size_t length, vector<uint8_t> &literals);
-    void        readIEND(char* data, size_t length);
-    void        readUnknown(char* data, size_t length);
 
     //encoding critical png components
     void printSig(ostream &os) const;

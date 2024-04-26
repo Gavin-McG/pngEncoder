@@ -46,12 +46,13 @@ int main(int argc, char* argv[]) {
     Options options;
     getMode(argc, argv, options);
 
+    //decode and re-encode
     if (true) {
         ifstream fs(options.fileIn, ios::binary);
         ImageInfo image(fs);
         fs.close();
 
-        image.colorType = ColorType::TrueAlpha;
+        //image.colorType = ColorType::TrueAlpha;
 
         ofstream fs2(options.fileOut);
         image.printPng(fs2,DeflateType::NoCompression);
@@ -60,10 +61,18 @@ int main(int argc, char* argv[]) {
         cout << image.getPixel(10,10) << endl;
     }
 
+    //simple encode
     if (false) {
         ImageInfo image(30,30,Color(1,0,0));
         ofstream fs(options.fileOut);
         image.printPng(fs,DeflateType::NoCompression);
+        fs.close();
+    }
+
+    //simple decode
+    if (false) {
+        ifstream fs(options.fileIn);
+        ImageInfo image(fs);
         fs.close();
     }
 
