@@ -58,9 +58,9 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
 
 void literalStatic(iBitstream &bs, uint16_t literal) {
     if (literal<=143) {
-        bs.push(48+literal,8);
+        bs.pushLR(48+literal,8);
     }else{
-        bs.push(400+(literal-144),9);
+        bs.pushLR(400+(literal-144),9);
     }
 }
 
@@ -90,14 +90,14 @@ void addLengthCode(iBitstream &bs, uint16_t length) {
     lengthStatic(bs, code);
 
     //add extra bits
-    bs.pushReverse(r1,xbits);
+    bs.pushRL(r1,xbits);
 }
 
 void lengthStatic(iBitstream &bs, uint16_t lengthCode) {
     if (lengthCode <= 279) {
-        bs.push((lengthCode-256),7);
+        bs.pushLR((lengthCode-256),7);
     }else{
-        bs.push(192+(lengthCode-280),8);
+        bs.pushLR(192+(lengthCode-280),8);
     }
 }
 
@@ -121,11 +121,11 @@ void addDistanceCode(iBitstream &bs, uint16_t distance) {
     distanceStatic(bs, code);
 
     //add extra bits
-    bs.pushReverse(r1,xbits);
+    bs.pushRL(r1,xbits);
 }
 
 void distanceStatic(iBitstream &bs, uint16_t distanceCode) {
-    bs.push(distanceCode, 5);
+    bs.pushLR(distanceCode, 5);
 }
 
 vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
@@ -139,10 +139,10 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     vec.push_back(flg+FCheck(cmf,flg));
 
     //bitstream
-    iBitstream bs;
+    iBitstream bs(BitOrder::LSBitFirst);
 
     //header
-    bs.push(static_cast<uint8_t>(0x06),3); //last block, static codes
+    bs.pushLR(static_cast<uint8_t>(0x06),3); //last block, static codes
 
     //push data to bitstream
     for (Code c : codes) {
@@ -164,7 +164,7 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     lengthStatic(bs,256);
 
     //add data to byte vector
-    vector<uint8_t> data = bs.bytesClear();
+    vector<uint8_t> data = bs.getBytesMove();
     for (uint i : data) {
         vec.push_back(i);
     }

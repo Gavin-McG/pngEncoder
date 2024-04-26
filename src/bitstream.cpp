@@ -1,42 +1,53 @@
 #include "../include/bitstream.h"
 
 
-size_t iBitstream::size() {
+size_t iBitstream::sizeBytes() {
     return stream.size() + (bits>0?1:0);
 }
-
-vector<uint8_t> iBitstream::bytes() {
-    vector<uint8_t> bytesCopy(stream);
-    if (bits>0) bytesCopy.push_back(current);
-    return bytesCopy;
+size_t iBitstream::sizeBits() {
+    return stream.size()*8 + bits;
 }
 
-vector<uint8_t> iBitstream::bytesClear() {
+bool iBitstream::empty() {
+    return stream.size()==0 && bits==0;
+}
+
+vector<uint8_t> iBitstream::getBytes() {
+    vector<uint8_t> streamCopy(stream.begin(),stream.end());
+    if (bits>0) streamCopy.push_back(current);
+    return streamCopy;
+}
+vector<uint8_t> iBitstream::getBytesMove() {
     if (bits>0) stream.push_back(current);
     current = 0;
     bits = 0;
     return move(stream);
 }
 
-void iBitstream::nextByte() {
-    if (bits==0) return;
-    stream.push_back(current);
-    current = 0;
+void iBitstream::clear() {
+    stream = vector<uint8_t>();
     bits = 0;
+    current = 0;
 }
+
 
 void iBitstream::pushBit(uint8_t bit) {
-    bit = bit%2; //input protection
-    current += (bit<<bits);
-    ++bits;
+    if (order==BitOrder::LSBitFirst) {
+        current += (bit<<bits);
+    }else{
+        current += (bit<<(7-bits));
+    }
 
-    //add current to vector
+    ++bits;
     if (bits==8) {
         stream.push_back(current);
-        current = 0;
-        bits = 0;
+        bits=0;
+        current=0;
     }
 }
+
+
+
 
 
 

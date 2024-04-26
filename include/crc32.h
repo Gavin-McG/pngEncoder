@@ -22,6 +22,8 @@ uint32_t getCRC32(const string &s, const uint32_t* crcTable, bool flip = true, u
 
 uint32_t getCRC32(const char* s, size_t length, const uint32_t* crcTable, bool flip = true, uint32_t initial = CRC_INITIAL);
 
+uint32_t getCRC32(const vector<uint8_t> &bytes, const uint32_t* crcTable, bool flip, uint32_t initial = CRC_INITIAL);
+
 
 uint32_t iterateCRC(uint32_t crc, uint8_t v, const uint32_t* crcTable);
 

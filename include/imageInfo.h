@@ -10,6 +10,7 @@
 #include "utilities.h"
 #include "deflate.h"
 #include "crc32.h"
+#include "bitstream.h"
 
 using namespace std;
 
@@ -78,17 +79,12 @@ class ImageInfo {
     vector<vector<Color>> ref;
     vector<FilterType> filters;
 
-    //raw data functions
-    size_t getScanlineSize() const;
-    template<typename T>
-    vector<uint8_t> getScanline(size_t row, FilterType type) const;
-    vector<uint8_t> getDatastream() const;
-
-    void setScanline(size_t row, vector<uint8_t> &literals);
-    void setImage(vector<uint8_t> &literals);
-    void reverseFilters();
-    template <typename T>
-    void reverseScanline(size_t row);
+    //encoding helper functions
+    vector<uint8_t> getScanline(size_t row) const;
+    vector<vector<uint8_t>> getImageBytes() const;
+    void filterBytes(vector<vector<uint8_t>> &bytes) const;
+    vector<uint8_t> flattenBytes(vector<vector<uint8_t>> &bytes) const;
+    
 
     //reading png components from istream
     static bool verifySig(istream &is);

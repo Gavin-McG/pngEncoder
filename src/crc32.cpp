@@ -39,3 +39,13 @@ uint32_t getCRC32(const char* s, size_t length, const uint32_t* crcTable, bool f
     if (flip) crc ^= 0xFFFFFFFF;
     return crc;
 }
+
+uint32_t getCRC32(const vector<uint8_t> &bytes, const uint32_t* crcTable, bool flip, uint32_t initial) {
+    uint32_t crc = initial;
+    for (size_t i=0; i<bytes.size(); ++i) {
+        uint8_t c = bytes[i];
+        crc = (crc>>8) ^ crcTable[(crc^c) & 0xFF];
+    }
+    if (flip) crc ^= 0xFFFFFFFF;
+    return crc;
+}

@@ -4,31 +4,26 @@
 #include "bitstream.h"
 
 template<typename T>
-void iBitstream::push(T integer) {
-    size_t s = sizeof(integer);
-    for (size_t i=1; i<=s; ++i) {
-        pushBit((integer>>(s-i))%2);
-    }
+void iBitstream::pushRL(T integer) {
+    pushRL(integer, sizeof(T)*8);
 }
 
 template<typename T>
-void iBitstream::push(T integer, size_t bits) {
+void iBitstream::pushRL(T integer, size_t bits) {
+    for (size_t i=0; i<bits; ++i) {
+        pushBit((integer>>i)%2);
+    }
+}
+
+
+template<typename T>
+void iBitstream::pushLR(T integer) {
+    pushLR(integer, sizeof(T)*8);
+}
+
+template<typename T>
+void iBitstream::pushLR(T integer, size_t bits) {
     for (size_t i=1; i<=bits; ++i) {
-        pushBit((integer>>(bits-i))%2);
-    }
-}
-
-template<typename T>
-void iBitstream::pushReverse(T integer) {
-    size_t s = sizeof(integer);
-    for (size_t i=s; i>0; --i) {
-        pushBit((integer>>(s-i))%2);
-    }
-}
-
-template<typename T>
-void iBitstream::pushReverse(T integer, size_t bits) {
-    for (size_t i=bits; i>0; --i) {
         pushBit((integer>>(bits-i))%2);
     }
 }

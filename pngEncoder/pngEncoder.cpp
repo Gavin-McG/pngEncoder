@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo image(200,200,ColorType::Grey,BitDepth::Eight,Color(0.1,0.7,0.9,1));
+        ImageInfo image(200,200,ColorType::True,BitDepth::Sixteen,Color(0.1,0.7,0.9,1));
         image.setFilters(FilterType::Average);
 
         for (float i=0; i<200; i++) {
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         
         ImageInfo filtered = image.filter(kernel,false);
 
-        filtered.printPng(fs,DeflateType::StaticCodes);
+        filtered.printPng(fs,DeflateType::NoCompression);
         
         fs.close();
     }

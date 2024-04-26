@@ -7,38 +7,47 @@
 
 using namespace std;
 
-class  iBitstream {
+enum BitOrder {
+    MSBitFirst,
+    LSBitFirst
+};
+
+class iBitstream {
     public:
 
-    iBitstream() : current(0), bits(0) {}
+    iBitstream(BitOrder order = BitOrder::LSBitFirst) : current(0), bits(0), order(order) {}
 
     template<typename T>
-    void push(T integer);
+    void pushRL(T integer);
+    template<typename T>
+    void pushRL(T integer, size_t bits);
 
     template<typename T>
-    void push(T integer, size_t bits);
-
+    void pushLR(T integer);
     template<typename T>
-    void pushReverse(T integer);
+    void pushLR(T integer, size_t bits);
 
-    template<typename T>
-    void pushReverse(T integer, size_t bits);
+    size_t sizeBytes();
+    size_t sizeBits();
 
-    size_t size();
+    bool empty();
 
-    vector<uint8_t> bytes();
-    vector<uint8_t> bytesClear();
+    vector<uint8_t> getBytes();
+    vector<uint8_t> getBytesMove();
 
-    void nextByte();
+    void clear();
 
     private:
     uint8_t current;
     uint8_t bits;
+    BitOrder order;
     vector<uint8_t> stream;
 
     //takes either a 0 or 1 as input and pushes it into the stream
     void pushBit(uint8_t bit);
 };
+
+
 
 
 

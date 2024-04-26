@@ -3,66 +3,131 @@
 
 
 
+vector<uint8_t> ImageInfo::getScanline(size_t row) const {
+    iBitstream bs(BitOrder::MSBitFirst);
 
-void ImageInfo::calculateBestFilters() {
+    //compute #bits and max value from bit-depth
+    size_t bits = static_cast<size_t>(bitDepth);
+    uint16_t maxVal = (1ul << bits) - 1;
 
-}
+    //push filter
+    bs.pushLR(static_cast<uint8_t>(filters[row]),8);
 
-size_t ImageInfo::getScanlineSize() const {
+    //add all pixels in row to bitstream
+    uint16_t v,r,g,b,a;
     switch (colorType) {
         case ColorType::Grey:
-            return 1+1*width*bitDepth/8;
-        case ColorType::True:
-            return 1+3*width*bitDepth/8;
-        case ColorType::Indexed:
-            cerr << "Indexed ColorType not supported\n";
-            return 0;
-        case ColorType::GreyAlpha:
-            return 1+2*width*bitDepth/8;
-        case ColorType::TrueAlpha:
-            return 1+4*width*bitDepth/8;
-        default:
-            cerr << "Invalid ColorType " << colorType << '\n';
-            return 0;
-    }
-}
-
-
-vector<uint8_t> ImageInfo::getDatastream() const {
-    vector<uint8_t> vec;
-    vec.reserve(getScanlineSize()*height);
-
-    switch (bitDepth) {
-        case BitDepth::One:
-            
-            break;
-        case BitDepth::Two:
-            
-            break;
-        case BitDepth::Four:
-            
-            break;
-        case BitDepth::Eight:
-            for (size_t i=0; i<height; ++i) {
-                vector<uint8_t> scanline = getScanline<uint8_t>(i,filters[i]);
-                for (size_t j=0; j<scanline.size(); ++j) {
-                    vec.push_back(scanline[j]);
-                }
+            for (size_t i=0; i<width; ++i) {
+                v = static_cast<uint16_t>(clamp(ref[row][i].getGreyscale(),0.0f,1.0f)*maxVal);
+                bs.pushLR(v,bits);
             }
             break;
-        case BitDepth::Sixteen:
-            for (size_t i=0; i<height; ++i) {
-                vector<uint8_t> scanline = getScanline<uint16_t>(i,filters[i]);
-                for (size_t j=0; j<scanline.size(); ++j) {
-                    vec.push_back(scanline[j]);
-                }
+        case ColorType::True:
+            for (size_t i=0; i<width; ++i) {
+                r = static_cast<uint16_t>(clamp(ref[row][i].r,0.0f,1.0f)*maxVal);
+                g = static_cast<uint16_t>(clamp(ref[row][i].g,0.0f,1.0f)*maxVal);
+                b = static_cast<uint16_t>(clamp(ref[row][i].b,0.0f,1.0f)*maxVal);
+                bs.pushLR(r,bits);
+                bs.pushLR(g,bits);
+                bs.pushLR(b,bits);
+            }
+            break;
+        case ColorType::Indexed:
+
+            break;
+        case ColorType::GreyAlpha:
+            for (size_t i=0; i<width; ++i) {
+                v = static_cast<uint16_t>(clamp(ref[row][i].getGreyscale(),0.0f,1.0f)*maxVal);
+                a = static_cast<uint16_t>(clamp(ref[row][i].a,0.0f,1.0f)*maxVal);
+                bs.pushLR(v,bits);
+                bs.pushLR(a,bits);
+            }
+            break;
+        case ColorType::TrueAlpha:
+            for (size_t i=0; i<width; ++i) {
+                r = static_cast<uint16_t>(clamp(ref[row][i].r,0.0f,1.0f)*maxVal);
+                g = static_cast<uint16_t>(clamp(ref[row][i].g,0.0f,1.0f)*maxVal);
+                b = static_cast<uint16_t>(clamp(ref[row][i].b,0.0f,1.0f)*maxVal);
+                a = static_cast<uint16_t>(clamp(ref[row][i].a,0.0f,1.0f)*maxVal);
+                bs.pushLR(r,bits);
+                bs.pushLR(g,bits);
+                bs.pushLR(b,bits);
+                bs.pushLR(a,bits);
             }
             break;
         default: break;
     }
     
-    return vec;
+    return bs.getBytesMove();
 }
+
+vector<vector<uint8_t>> ImageInfo::getImageBytes() const {
+    vector<vector<uint8_t>> table(height);
+    for (size_t i=0; i<height; ++i) {
+        table[i] = getScanline(i);
+    }
+    return table;
+}
+
+void ImageInfo::filterBytes(vector<vector<uint8_t>> &bytes) const {
+    int byteShift = 0;
+    if (colorType == ColorType::Grey) byteShift = 1;
+    else if (colorType == ColorType::GreyAlpha) byteShift = 2;
+    else if (colorType == ColorType::True) byteShift = 3;
+    else if (colorType == ColorType::TrueAlpha) byteShift = 4;
+    byteShift *= static_cast<int>(bitDepth)/8;
+    byteShift = max(1,byteShift);
+
+    for (int i=height-1; i>=0; --i) {
+        uint8_t a,b,c;
+        switch (filters[i]) {
+            case FilterType::None:
+                break;
+            case FilterType::Sub:
+                for (size_t j=bytes[i].size(); j>0; --j) {
+                    a =  (j<=byteShift)?0:bytes[i][j-byteShift];
+                    bytes[i][j] -= a;
+                }
+                break;
+            case FilterType::Up:
+                for (size_t j=bytes[i].size(); j>0; --j) {
+                    b = (i==0)?0:bytes[i-1][j];
+                    bytes[i][j] -= b;
+                }
+                break;
+            case FilterType::Average:
+                for (size_t j=bytes[i].size(); j>0; --j) {
+                    a = (j<=byteShift)?0:bytes[i][j-byteShift];
+                    b = (i==0)?0:bytes[i-1][j];
+                    bytes[i][j] -= ((b+a)>>1);
+                }
+                break;
+            case FilterType::Paeth:
+                for (size_t j=bytes[i].size(); j>0; --j) {
+                    a =  (j<=byteShift)?0:bytes[i][j-byteShift];
+                    b = (i==0)?0:bytes[i-1][j];
+                    c = (i==0||j<=byteShift)?0:bytes[i-1][j-byteShift];
+                    bytes[i][j] -= paethPredictor(a,b,c);
+                }
+                break;
+        }
+    }
+}
+
+vector<uint8_t> ImageInfo::flattenBytes(vector<vector<uint8_t>> &bytes) const {
+    vector<uint8_t> result;
+    result.reserve(bytes.size()*bytes[0].size());
+    for (size_t i=0; i<bytes.size(); ++i) {
+        for (size_t j=0; j<bytes[i].size();++j) {
+            result.push_back(bytes[i][j]);
+        }
+        bytes[i] = vector<uint8_t>();
+    }
+    bytes = vector<vector<uint8_t>>();
+    return result;
+}
+
+
 
 
 
@@ -80,8 +145,6 @@ void ImageInfo::printPng(ostream &os, DeflateType deflateType) const {
     printIDAT(os, deflateType);
     printIEND(os);
 }
-
-
 
 void ImageInfo::printSig(ostream &os) const {
     os << "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a";
@@ -110,29 +173,44 @@ void ImageInfo::printIDHR(ostream &os) const {
 }
 
 void ImageInfo::printIDAT(ostream &os, DeflateType deflateType) const {
-    //get and compress data
-    vector<uint8_t> data = getDatastream();
-    vector<uint8_t> compressed = deflate(data, deflateType);
-    
-    //get chunk name and data to compute crc32
-    stringstream ss;
-    ss << "IDAT";
-    for (uint8_t i : compressed) {
-        ss << i;
+    //get image data
+    vector<vector<uint8_t>> bytes = getImageBytes();
+    filterBytes(bytes);
+    vector<uint8_t> data = flattenBytes(bytes);
+
+    //calculate adler32
+    uint32_t adler = getADLER32(data);
+
+    //huffman coding
+    vector<uint8_t> datastream;
+    if (deflateType==DeflateType::NoCompression) {
+        //huffmanno compression
+        datastream = huffman_uncompressed(data, adler);
+    }else if (deflateType==DeflateType::StaticCodes) {
+        //compress into codes
+        vector<Code> codes = lz77_compress(data);
+        data = vector<uint8_t>();
+        //huffman static coding
+        datastream = huffman_static(codes,adler);
+    }else{
+        //compress into codes
+        vector<Code> codes = lz77_compress(data);
+        data = vector<uint8_t>();
+        //huffman dynamic coding
+        datastream = huffman_dynamic(codes,adler);
     }
 
-    //clear compressed to save memory
-    uint32_t length = compressed.size();
-    compressed = vector<uint8_t>();
+    //output data
+    printInt(os, uint32_t(datastream.size()));
+    string chunkName = "IDAT";
+    os << chunkName;
+    for (size_t i=0;i<datastream.size();++i) {
+        printInt(os,datastream[i]);
+    }
 
-    //compute crc32
-    uint32_t crc = getCRC32(ss,crcTable);
-
-    //chunk data length
-    printInt(os,length);
-    //name and data
-    os << ss.str();
-    //crc32
+    //crc
+    uint32_t crc = getCRC32(chunkName,crcTable,false);
+    crc = getCRC32(datastream,crcTable,true,crc);
     printInt(os,crc);
 }
 
