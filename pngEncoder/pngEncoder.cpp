@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../include/imageInfo.h"
+#include "../include/dynamicTree.h"
 
 
 
@@ -97,7 +98,7 @@ int main(int argc, char* argv[]) {
     }
 
     //filter test
-    if (true) {
+    if (false) {
         //output
         ofstream fs(options.fileOut);
 
@@ -118,6 +119,17 @@ int main(int argc, char* argv[]) {
         filtered.printPng(fs,DeflateType::StaticCodes);
         
         fs.close();
+    }
+
+    //dynamic tree test
+    if (true) {
+        vector<size_t> frequencies = {1,1,5,7,10,14,16,143,354,435,2324,24232};
+
+        vector<DynamicCode> codes = getPrefixCodes(frequencies,6);
+
+        for (size_t i=0;i<codes.size();++i) {
+            cout << codes[i].val << ' ' << static_cast<int>(codes[i].length) << endl;
+        }
     }
 
     return 0;
