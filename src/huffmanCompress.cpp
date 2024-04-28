@@ -52,6 +52,86 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
 
 
 
+uint16_t getLengthXbits(uint16_t length) {
+    //shift length into range 0-255
+    uint16_t shifted = length-3;
+
+    //find the number of extra bits for the given length
+    uint16_t log = bit_width(shifted);
+    uint16_t xbits = log - min(static_cast<uint16_t>(3),log);
+}
+
+uint16_t getLengthCode(uint16_t length) {
+    //shift length into range 0-255
+    uint16_t shifted = length-3;
+
+    uint16_t xbits = getLengthXbits(length);
+
+    //groups sets of 4 for the 4 codes of each extra bit size
+    uint16_t r1 = shifted % (1<<xbits);
+    uint16_t r2 = shifted % (1<<(xbits+2));
+    uint16_t c = (r2-r1) >> xbits;
+
+    //get code
+    return c + 4*xbits + (shifted>=4?4:0) + 257;
+}
+
+void addLengthXbits(iBitstream &bs, uint16_t length) {
+    //shift length into range 0-255
+    uint16_t shifted = length-3;
+
+    uint16_t xbits = getLengthXbits(length);
+
+    //get number to add as extra bits
+    uint16_t r1 = shifted % (1<<xbits);
+    
+    //get code
+    bs.pushRL(r1,xbits);
+}
+
+
+
+uint16_t getDistanceXbits(uint16_t distance) {
+    //shift length into range
+    uint16_t shifted = distance-1;
+
+    //find the number of extra bits for the given length
+    uint16_t log = bit_width(shifted);
+    uint16_t xbits = log - min(static_cast<uint16_t>(2),log);
+}
+
+uint16_t getDistanceCode(uint16_t distance) {
+    //shift length into range
+    uint16_t shifted = distance-1;
+
+    uint16_t xbits = getDistanceXbits(distance);
+
+    //groups sets of 2 for the 2 codes of each extra bit size
+    uint16_t r1 = shifted % (1<<xbits);
+    uint16_t r2 = shifted % (1<<(xbits+1));
+    uint16_t c = (r2-r1) >> xbits;
+
+    //get code
+    uint16_t code = c + 2*xbits + (shifted>=2?2:0);
+}
+
+void addDistanceXbits(iBitstream &bs, uint16_t distance) {
+    //shift length into range
+    uint16_t shifted = distance-1;
+
+    uint16_t xbits = getDistanceXbits(distance);
+
+    uint16_t r1 = shifted % (1<<xbits);
+
+    //add extra bits
+    bs.pushRL(r1,xbits);
+}
+
+
+
+
+
+
 
 
 
@@ -71,26 +151,13 @@ void addLengthCode(iBitstream &bs, uint16_t length) {
         return;
     }
 
-    //shift length into range 0-255
-    uint16_t shifted = length-3;
-
-    //find the number of extra bits for the given length
-    uint16_t log = bit_width(shifted);
-    uint16_t xbits = log - min(static_cast<uint16_t>(3),log);
-
-    //groups sets of 4 for the 4 codes of each extra bit size
-    uint16_t r1 = shifted % (1<<xbits);
-    uint16_t r2 = shifted % (1<<(xbits+2));
-    uint16_t c = (r2-r1) >> xbits;
-
-    //get code
-    uint16_t code = c + 4*xbits + (shifted>=4?4:0) + 257;
+    uint16_t code = getLengthCode(length);
 
     //add static length code
     lengthStatic(bs, code);
 
     //add extra bits
-    bs.pushRL(r1,xbits);
+    addLengthXbits(bs, length);
 }
 
 void lengthStatic(iBitstream &bs, uint16_t lengthCode) {
@@ -102,31 +169,20 @@ void lengthStatic(iBitstream &bs, uint16_t lengthCode) {
 }
 
 void addDistanceCode(iBitstream &bs, uint16_t distance) {
-    //shift length into range 0-255
-    uint16_t shifted = distance-1;
-
-    //find the number of extra bits for the given length
-    uint16_t log = bit_width(shifted);
-    uint16_t xbits = log - min(static_cast<uint16_t>(2),log);
-
-    //groups sets of 2 for the 2 codes of each extra bit size
-    uint16_t r1 = shifted % (1<<xbits);
-    uint16_t r2 = shifted % (1<<(xbits+1));
-    uint16_t c = (r2-r1) >> xbits;
-
-    //get code
-    uint16_t code = c + 2*xbits + (shifted>=2?2:0);
+    uint16_t code = getDistanceCode(distance);
 
     //add static distance code
     distanceStatic(bs, code);
 
-    //add extra bits
-    bs.pushRL(r1,xbits);
+    addDistanceCode(bs, distance);
 }
 
 void distanceStatic(iBitstream &bs, uint16_t distanceCode) {
     bs.pushLR(distanceCode, 5);
 }
+
+
+
 
 vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     vector<uint8_t> vec;
@@ -194,60 +250,3 @@ vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
 
 
 
-
-
-vector<Code> huffman_decompress(oBitstream &bs) {
-    vector<Code> codes;
-
-    bool lastBlock = false;
-    uint8_t deflateMethod = 0;
-    while (!lastBlock) {
-        //get header
-        lastBlock = bs.getRL<uint8_t>(1)==1;
-        deflateMethod = bs.getRL<uint8_t>(2);
-
-        cout << "read deflate method " << static_cast<int>(deflateMethod) << endl;
-
-        //retrieve codes from data
-        if (deflateMethod == 0) {
-            decompress_uncompressed(bs, codes);
-        }else if (deflateMethod == 1) {
-            decompress_static(bs, codes);
-        }else if (deflateMethod == 2) {
-            decompress_dynamic(bs, codes);
-        }else{
-            cout << "Incorrect delfate method read" << endl;
-        }
-    }
-
-    return codes;
-}
-
-
-
-
-
-
-void decompress_uncompressed(oBitstream &bs, vector<Code> &codes) {
-    bs.nextByte();
-
-    uint16_t length = bs.getRL<uint16_t>(16);
-    uint16_t nlength = bs.getRL<uint16_t>(16);
-
-    if ((length^nlength) != UINT16_MAX) {
-        cout << "LEN and NLEN do not match" << endl;
-        cout << "\tlength: " << length << endl;
-        cout << "\tnlength: " << nlength << endl;
-        cout << "\tXOR: " << (length^nlength) << endl;
-    }
-
-    for (size_t i=0;i<length; ++i) {
-        codes.emplace_back(CodeType::Literal,bs.getRL<uint16_t>(8));
-    }
-}
-
-void decompress_static(oBitstream &bs, vector<Code> &codes) {
-}
-
-void decompress_dynamic(oBitstream &bs, vector<Code> &codes) {
-}

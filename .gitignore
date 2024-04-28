@@ -1,6 +1,7 @@
 *.png
 *.txt
 *.exe
+*.o
 
 # Ignore the executable files
 /pngEncoder

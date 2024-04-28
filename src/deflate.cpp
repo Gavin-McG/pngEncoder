@@ -24,7 +24,6 @@ vector<uint8_t> deflateStatic(vector<uint8_t> &data) {
 
     //push literals an lz77 pointers into static huffman coding
     vector<uint8_t> compressed = huffman_static(codes, adler);
-    codes = vector<Code>();
 
     return compressed;
 }
