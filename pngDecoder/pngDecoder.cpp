@@ -57,8 +57,6 @@ int main(int argc, char* argv[]) {
         ofstream fs2(options.fileOut);
         image.printPng(fs2,DeflateType::NoCompression);
         fs2.close();
-
-        cout << image.getPixel(10,10) << endl;
     }
 
     //simple encode

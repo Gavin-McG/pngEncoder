@@ -14,6 +14,39 @@
 
 using namespace std;
 
+//TODO:
+
+//Dynamic coding
+//Lz77 hash optimization
+//Indexed color
+//More drawing functions
+//meta-data
+//Interlacing
+
+enum FilterType : uint8_t {
+    None,
+    Sub,
+    Up,
+    Average,
+    Paeth
+};
+
+enum ColorType : uint8_t {
+    Grey = 0,
+    True = 2,
+    Indexed = 3,
+    GreyAlpha = 4,
+    TrueAlpha = 6
+};
+
+enum BitDepth : uint8_t {
+    One = 1,
+    Two = 2,
+    Four = 4,
+    Eight = 8,
+    Sixteen = 16
+};
+
 static const ColorType  DEFAULT_COLORTYPE   = ColorType::True;
 static const BitDepth   DEFAULT_BITDEPTH    = BitDepth::Eight;
 static const Color      DEFAULT_COLOR       = Color();

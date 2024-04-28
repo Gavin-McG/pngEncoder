@@ -9,16 +9,6 @@
 #include "../include/imageInfo.h"
 
 
-//TODO:
-
-//Dynamic coding
-//Lz77 hash optimization
-//bit depth 1-2-4
-//Indexed color
-//More drawing functions
-//meta-data
-//Interlacing
-
 
 using namespace std;
 
