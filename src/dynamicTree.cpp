@@ -1,6 +1,16 @@
 #include "../include/dynamicTree.h"
 
 
+bool pairCompare(const pair<int, int>& a, const pair<int, int>& b) {
+    if (a.second == 0 && b.second != 0) {
+        return false; // a (zero) should go after b
+    } else if (a.second != 0 && b.second == 0) {
+        return true; // a should go before b (b is zero)
+    } else {
+        return a.second < b.second; // normal comparison
+    }
+}
+
 vector<DynamicCode> getPrefixCodes(vector<size_t> &frequencies, size_t maxL) {
     //sort index and frequency pairs
     vector<pair<size_t,size_t>> frequencyIndex;
@@ -21,8 +31,29 @@ vector<DynamicCode> getPrefixCodes(vector<size_t> &frequencies, size_t maxL) {
     }
     frequencyIndex = vector<pair<size_t,size_t>>();
 
+    //count non-zero values
+    size_t values = 0;
+    for (size_t i=0;i<sortedFreq.size(); ++i, ++values) {
+        //cout << sortedFreq[i] << ' ';
+        if (sortedFreq[i]==0) {
+            break;
+        }
+    }
+    //cout << endl;
+
+    //no values edge case
+    if (values==0) {
+        return vector<DynamicCode>(frequencies.size(),DynamicCode(0,0));
+    }
+
     //get code lengths from sorted frequencies
-    vector<size_t> lengths = getCodeLengths(sortedFreq, maxL);
+    vector<size_t> lengths = getCodeLengths(sortedFreq, maxL, values);
+    cout << values << ' ' << lengths.size() << endl;
+
+    //add zero-length codes
+    for (size_t i=0;i<sortedFreq.size()-values;++i) {
+        lengths.push_back(0);
+    }
 
     //unsort lengths
     vector<size_t> unsortedLengths;
@@ -32,7 +63,7 @@ vector<DynamicCode> getPrefixCodes(vector<size_t> &frequencies, size_t maxL) {
     }
 
     //turn code lengths into codes
-    return lengths2Codes(lengths, maxL);
+    return lengths2Codes(unsortedLengths, maxL);
 }
 
 
@@ -46,13 +77,13 @@ void exploreTree(vector<vector<node>> &table, size_t row, size_t tree, vector<si
     }
 }
 
-vector<size_t> getCodeLengths(vector<size_t> &frequencies, size_t maxL) {
+vector<size_t> getCodeLengths(vector<size_t> &frequencies, size_t maxL, size_t count) {
     vector<vector<node>> table;
     table.resize(maxL);
 
     //create leaf and roots 
     vector<node> leaves;
-    for (size_t i=0;i<frequencies.size();++i) {
+    for (size_t i=0;i<count;++i) {
         leaves.emplace_back(false,frequencies[i],i);
     }
     vector<node> roots;
@@ -90,8 +121,8 @@ vector<size_t> getCodeLengths(vector<size_t> &frequencies, size_t maxL) {
     // }
 
     //explore first 2n-2 trees to get code lengths
-    vector<size_t> lengths(frequencies.size(),0);
-    for (size_t i=0;i<frequencies.size()*2-2;++i) {
+    vector<size_t> lengths(count,0);
+    for (size_t i=0;i<count*2-2;++i) {
         exploreTree(table,maxL-1,i,lengths);
     }
     return lengths;

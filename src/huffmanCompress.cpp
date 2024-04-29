@@ -52,13 +52,22 @@ vector<uint8_t> huffman_uncompressed(vector<uint8_t> literals, uint32_t adler) {
 
 
 
+
+
+
+
+
+
+
+
+
 uint16_t getLengthXbits(uint16_t length) {
     //shift length into range 0-255
     uint16_t shifted = length-3;
 
     //find the number of extra bits for the given length
     uint16_t log = bit_width(shifted);
-    uint16_t xbits = log - min(static_cast<uint16_t>(3),log);
+    return log - min(static_cast<uint16_t>(3),log);
 }
 
 uint16_t getLengthCode(uint16_t length) {
@@ -97,7 +106,7 @@ uint16_t getDistanceXbits(uint16_t distance) {
 
     //find the number of extra bits for the given length
     uint16_t log = bit_width(shifted);
-    uint16_t xbits = log - min(static_cast<uint16_t>(2),log);
+    return log - min(static_cast<uint16_t>(2),log);
 }
 
 uint16_t getDistanceCode(uint16_t distance) {
@@ -112,7 +121,7 @@ uint16_t getDistanceCode(uint16_t distance) {
     uint16_t c = (r2-r1) >> xbits;
 
     //get code
-    uint16_t code = c + 2*xbits + (shifted>=2?2:0);
+    return c + 2*xbits + (shifted>=2?2:0);
 }
 
 void addDistanceXbits(iBitstream &bs, uint16_t distance) {
@@ -126,6 +135,16 @@ void addDistanceXbits(iBitstream &bs, uint16_t distance) {
     //add extra bits
     bs.pushRL(r1,xbits);
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -174,7 +193,7 @@ void addDistanceCode(iBitstream &bs, uint16_t distance) {
     //add static distance code
     distanceStatic(bs, code);
 
-    addDistanceCode(bs, distance);
+    addDistanceXbits(bs, distance);
 }
 
 void distanceStatic(iBitstream &bs, uint16_t distanceCode) {
@@ -183,12 +202,10 @@ void distanceStatic(iBitstream &bs, uint16_t distanceCode) {
 
 
 
-
 vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
     vector<uint8_t> vec;
 
     //flags
-    
     uint8_t cmf = 0x78;
     uint8_t flg = 0x40;
     vec.push_back(cmf);
@@ -238,8 +255,180 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler) {
 
 
 
+
+vector<pair<uint8_t,uint8_t>> codeLengthEncoding(vector<uint8_t> &lengths) {
+    vector<pair<uint8_t,uint8_t>> encoding;
+
+    size_t i=0;
+    while (i<lengths.size()) {
+        //count 0 series
+        size_t j=i;
+        while (j<lengths.size() && j-i<138 && lengths[j]==0) ++j;
+        if (j-i>=11) {
+            encoding.emplace_back(18,j-i-11);
+            i=j;
+            continue;
+        }else if (j-i>=3) {
+            encoding.emplace_back(17,j-i-3);
+            i=j;
+            continue;
+        }
+
+        //repeating series
+        if (i>0) {
+            size_t j=i;
+            while (j<lengths.size() && j-i<6 && lengths[j]==lengths[i-1]) ++j;
+            if (j-i>=3) {
+                encoding.emplace_back(16,j-i-3);
+                i=j;
+                continue;
+            }
+        }
+
+        encoding.emplace_back(lengths[i],0);
+        ++i;
+    }
+
+    return encoding;
+}
+
+void addLiteralDynamic(iBitstream &bs, uint16_t code, vector<DynamicCode> &codes) {
+    bs.pushLR(codes[code].val,codes[code].length);
+}
+
+void addLengthCode(iBitstream &bs, uint16_t length, vector<DynamicCode> &codes) {
+    if (length == 258) {
+        bs.pushLR(codes[285].val,codes[285].length);
+        return;
+    }
+
+    uint16_t code = getLengthCode(length);
+
+    bs.pushLR(codes[code].val,codes[code].length);
+
+    addLengthXbits(bs,length);
+}
+
+void addDistanceCode(iBitstream &bs, uint16_t distance, vector<DynamicCode> &codes) {
+    uint16_t code = getDistanceCode(distance);
+
+    bs.pushLR(codes[code].val,codes[code].length);
+
+    addDistanceXbits(bs,distance);
+}
+
+
 vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
-    return vector<uint8_t>();
+    vector<uint8_t> vec;
+
+    //flags
+    uint8_t cmf = 0x78;
+    uint8_t flg = 0x40;
+    vec.push_back(cmf);
+    vec.push_back(flg+FCheck(cmf,flg));
+
+    //bitstream
+    iBitstream bs(BitOrder::LSBitFirst);
+
+    //header
+    bs.pushLR(static_cast<uint8_t>(0x05),3); //last block, dynamic codes
+
+    //get frequencies
+    vector<size_t> LLfrequencies(288, 0);
+    vector<size_t> distFrequencies(32,0);
+    for (size_t i=0; i<codes.size(); ++i) {
+        if (codes[i].type == CodeType::Literal) {
+            ++LLfrequencies[codes[i].val];
+        }else if (codes[i].type == CodeType::Length) {
+            ++LLfrequencies[getLengthCode(codes[i].val)];
+        }else if (codes[i].type == CodeType::Distance) {
+            ++distFrequencies[getDistanceCode(codes[i].val)];
+        }
+    }
+    //end of block
+    ++LLfrequencies[256];
+
+    //create prefix codes for Literals&length and for distances
+    vector<DynamicCode> LLCodes = getPrefixCodes(LLfrequencies, 15);
+    vector<DynamicCode> distCodes = getPrefixCodes(distFrequencies,15);
+
+    //combine length and distance lengths for code length codes
+    vector<uint8_t> allCodeLengths;
+    for (size_t i=0;i<LLCodes.size();++i) {
+        allCodeLengths.push_back(LLCodes[i].length);
+    }
+    for (size_t i=0;i<distCodes.size();++i) {
+        allCodeLengths.push_back(distCodes[i].length);
+    }
+
+    //get basic encoding for length in 0-18 alphabet
+    vector<pair<uint8_t,uint8_t>> basicEncoding = codeLengthEncoding(allCodeLengths);
+    cout << "tree encoding size:" << basicEncoding.size() << endl;
+    for (size_t i=0;i<basicEncoding.size();++i) {
+        cout << '\t' << static_cast<int>(basicEncoding[i].first) << ' ' << static_cast<int>(basicEncoding[i].second) << endl;
+    }
+
+    //get frequencies of code length codes
+    vector<size_t> CLCfrequencies(19,0);
+    for (size_t i=0;i<basicEncoding.size();++i) {
+        ++CLCfrequencies[basicEncoding[i].first];
+    }
+
+    //create prefix codes for code length codes
+    vector<DynamicCode> CLCCodes = getPrefixCodes(CLCfrequencies,7);
+
+    //add count bits
+    bs.pushRL(31,5); //HLIT
+    bs.pushRL(31,5); //HDIST
+    bs.pushRL(15,4); //HCLEN
+
+    //output code length code lengths
+    for (size_t i=0; i<19;++i) {
+        bs.pushRL(CLCCodes[CLCOrder[i]].length,3);
+    }
+
+    //output huffman coded code lengths for literals and length/distances
+    for (size_t i=0;i<basicEncoding.size();++i) {
+        bs.pushLR(CLCCodes[basicEncoding[i].first].val,CLCCodes[basicEncoding[i].first].length);
+        //extra bits
+        if (basicEncoding[i].first==18) {
+            bs.pushRL(basicEncoding[i].second,7);
+        }else if (basicEncoding[i].first==18) {
+            bs.pushRL(basicEncoding[i].second,3);
+        }else if (basicEncoding[i].first==18) {
+            bs.pushRL(basicEncoding[i].second,2);
+        }
+    }
+
+    //output huffman coded data for this block
+     for (Code c : codes) {
+        switch (c.type) {
+            case CodeType::Literal:
+                addLiteralDynamic(bs,c.val,LLCodes);
+                break;
+            case CodeType::Length:
+                addLengthCode(bs,c.val,LLCodes);
+                break;
+            case CodeType::Distance:
+                addDistanceCode(bs,c.val,distCodes);
+                break;
+            default: break;
+        }
+    }
+
+    //end of block
+    addLiteralDynamic(bs,256,LLCodes);
+
+    //add data to byte vector
+    vector<uint8_t> data = bs.getBytesMove();
+    for (uint i : data) {
+        vec.push_back(i);
+    }
+
+    //adler
+    pushInt(vec, adler);
+
+    return vec;
 }
 
 

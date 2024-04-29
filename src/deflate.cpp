@@ -29,7 +29,17 @@ vector<uint8_t> deflateStatic(vector<uint8_t> &data) {
 }
 
 vector<uint8_t> deflateDynamic(vector<uint8_t> &data) {
-    return vector<uint8_t>();
+    //compute adler
+    uint32_t adler = getADLER32(data);
+
+    //run lz77 algorithm
+    vector<Code> codes = lz77_compress(data);
+    data = vector<uint8_t>();
+
+    //push literals an lz77 pointers into static huffman coding
+    vector<uint8_t> compressed = huffman_dynamic(codes, adler);
+
+    return compressed;
 }
 
 

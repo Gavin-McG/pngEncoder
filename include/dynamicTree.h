@@ -15,9 +15,7 @@ struct DynamicCode {
     DynamicCode(uint8_t length, uint8_t val) : length(length), val(val) {}
 };
 
-bool pairCompare(const std::pair<int, int>& a, const std::pair<int, int>& b) {
-    return a.second < b.second;
-}
+bool pairCompare(const pair<int, int>& a, const pair<int, int>& b);
 
 //take a set of frequencies and return a vector of huffman codes O(n*maxL + nlogn) time & space
 //alphabet is {0...n-1}
@@ -39,7 +37,7 @@ struct node {
 void exploreTree(vector<vector<node>> &table, size_t row, size_t tree, vector<size_t> &lengths);
 
 //takes a sorted set of frequencies and returns corresponding code lengths O(n*maxL)
-vector<size_t> getCodeLengths(vector<size_t> &frequencies, size_t maxL);
+vector<size_t> getCodeLengths(vector<size_t> &frequencies, size_t maxL, size_t count);
 
 
 

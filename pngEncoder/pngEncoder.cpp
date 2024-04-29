@@ -122,14 +122,22 @@ int main(int argc, char* argv[]) {
     }
 
     //dynamic tree test
-    if (true) {
-        vector<size_t> frequencies = {1,1,5,7,10,14,16,143,354,435,2324,24232};
+    if (false) {
+        vector<size_t> frequencies = {5,6,2,5,8,9,5,3,56,1,0,8,0,0,0,24,23,40};
 
         vector<DynamicCode> codes = getPrefixCodes(frequencies,6);
-
+        cout << endl;
         for (size_t i=0;i<codes.size();++i) {
             cout << codes[i].val << ' ' << static_cast<int>(codes[i].length) << endl;
         }
+    }
+
+    //dynamic image test
+    if (true) {
+        ImageInfo image(1,1,ColorType::True,BitDepth::Eight,Color(1,0.5,0));
+
+        ofstream fs(options.fileOut);
+        image.printPng(fs,DeflateType::DynamicCodes);
     }
 
     return 0;

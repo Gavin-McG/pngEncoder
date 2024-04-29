@@ -50,7 +50,11 @@ vector<uint8_t> huffman_static(vector<Code> codes, uint32_t adler);
 
 
 //dynamic coding helper functions
-void addCodeDynamic(iBitstream &BS, uint16_t code, vector<DynamicCode> &codes);
+const vector<uint8_t> CLCOrder = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
+
+vector<pair<uint8_t,uint8_t>> codeLengthEncoding(vector<DynamicCode> &codes);
+
+void addLiteralDynamic(iBitstream &bs, uint16_t code, vector<DynamicCode> &codes);
 
 void addLengthCode(iBitstream &bs, uint16_t length, vector<DynamicCode> &codes);
 
