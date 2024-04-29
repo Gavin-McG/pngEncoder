@@ -6,6 +6,7 @@
 #include <vector>
 #include <bit>
 #include <iostream>
+#include <iomanip>
 #include "bitstream.h"
 #include "utilities.h"
 #include "lz77.h"

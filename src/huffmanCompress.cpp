@@ -352,20 +352,48 @@ vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
     vector<DynamicCode> LLCodes = getPrefixCodes(LLfrequencies, 15);
     vector<DynamicCode> distCodes = getPrefixCodes(distFrequencies,15);
 
+    //cut off 0-LL codes
+    size_t LLCodesSize = LLCodes.size();
+    while(LLCodesSize>257 && LLCodes[LLCodesSize-1].length==0) --LLCodesSize;
+
+    //cut off 0-dist codes
+    size_t distCodesSize = distCodes.size();
+    while(distCodesSize>1 && distCodes[distCodesSize-1].length==0) --distCodesSize;
+
+    cout << LLCodesSize << " Literal & Length Codes:" << endl;
+    for (size_t i=0; i<LLCodes.size(); ++i) {
+        if (LLCodes[i].length!=0) {
+            cout << "\t" << setw(3) << i << ' ' << static_cast<int>(LLCodes[i].length) << endl;
+        }
+    }
+
+    cout << distCodesSize << " Distance Codes:" << endl;
+    for (size_t i=0; i<distCodes.size(); ++i) {
+        if (distCodes[i].length!=0) {
+            cout << "\t" << setw(3) << i << ' ' << static_cast<int>(distCodes[i].length) << endl;
+        }
+    }
+
+
     //combine length and distance lengths for code length codes
     vector<uint8_t> allCodeLengths;
-    for (size_t i=0;i<LLCodes.size();++i) {
+    for (size_t i=0;i<LLCodesSize;++i) {
         allCodeLengths.push_back(LLCodes[i].length);
     }
-    for (size_t i=0;i<distCodes.size();++i) {
+    for (size_t i=0;i<distCodesSize;++i) {
         allCodeLengths.push_back(distCodes[i].length);
     }
 
     //get basic encoding for length in 0-18 alphabet
     vector<pair<uint8_t,uint8_t>> basicEncoding = codeLengthEncoding(allCodeLengths);
-    cout << "tree encoding size:" << basicEncoding.size() << endl;
-    for (size_t i=0;i<basicEncoding.size();++i) {
-        cout << '\t' << static_cast<int>(basicEncoding[i].first) << ' ' << static_cast<int>(basicEncoding[i].second) << endl;
+
+    cout << "Basic Encoding: " << endl;
+    for (size_t i=0; i<basicEncoding.size(); ++i) {
+        cout << '\t' << static_cast<int>(basicEncoding[i].first);
+        if (basicEncoding[i].first>=16) {
+            cout << ' ' << static_cast<int>(basicEncoding[i].second);
+        }
+        cout << endl;
     }
 
     //get frequencies of code length codes
@@ -374,16 +402,34 @@ vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
         ++CLCfrequencies[basicEncoding[i].first];
     }
 
+    cout << "Code length Code frequencies: " << endl;
+    for (size_t i=0;i<CLCfrequencies.size();++i) {
+        if (CLCfrequencies[i]>0) {
+            cout << '\t' << i << ' ' << CLCfrequencies[i] << endl;
+        }
+    }
+
     //create prefix codes for code length codes
     vector<DynamicCode> CLCCodes = getPrefixCodes(CLCfrequencies,7);
 
+    //cut off 0-CL codes
+    size_t CLCodeSize = CLCCodes.size();
+    while(CLCodeSize>4 && CLCCodes[CLCOrder[CLCodeSize-1]].length==0) --CLCodeSize;
+
+    cout << CLCodeSize << " Code Length Codes:" << endl;
+    for (size_t i=0; i<CLCCodes.size(); ++i) {
+        if (CLCCodes[CLCOrder[i]].length!=0) {
+            cout << "\t" << static_cast<int>(CLCOrder[i]) << ' ' << static_cast<int>(CLCCodes[CLCOrder[i]].length) << endl;
+        }
+    }
+
     //add count bits
-    bs.pushRL(31,5); //HLIT
-    bs.pushRL(31,5); //HDIST
-    bs.pushRL(15,4); //HCLEN
+    bs.pushRL(LLCodesSize-257,5); //HLIT
+    bs.pushRL(distCodesSize-1,5); //HDIST
+    bs.pushRL(CLCodeSize-4,4); //HCLEN
 
     //output code length code lengths
-    for (size_t i=0; i<19;++i) {
+    for (size_t i=0; i<CLCodeSize;++i) {
         bs.pushRL(CLCCodes[CLCOrder[i]].length,3);
     }
 

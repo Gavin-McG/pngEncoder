@@ -98,15 +98,15 @@ int main(int argc, char* argv[]) {
     }
 
     //filter test
-    if (false) {
+    if (true) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo image(500,500,ColorType::True,BitDepth::Eight,Color(0.1,0.7,0.9,1));
+        ImageInfo image(4,4,ColorType::True,BitDepth::Eight,Color(0.1,0.7,0.9,1));
         image.setFilters(FilterType::Average);
 
-        for (float i=0; i<500; i++) {
-            for (float j=0; j<500; ++j) {
+        for (float i=0; i<4; i++) {
+            for (float j=0; j<4; ++j) {
                 if ((static_cast<int>(i+j)/5)%2==0) image.drawPixel(i,j,Color(i/500,j/500,0.5,1));
             }
         }
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         
         ImageInfo filtered = image.filter(kernel,false);
 
-        filtered.printPng(fs,DeflateType::StaticCodes);
+        filtered.printPng(fs,DeflateType::DynamicCodes);
         
         fs.close();
     }
@@ -133,8 +133,8 @@ int main(int argc, char* argv[]) {
     }
 
     //dynamic image test
-    if (true) {
-        ImageInfo image(1,1,ColorType::True,BitDepth::Eight,Color(1,0.5,0));
+    if (false) {
+        ImageInfo image(3,3,ColorType::True,BitDepth::Eight,Color(1,0.5,0));
 
         ofstream fs(options.fileOut);
         image.printPng(fs,DeflateType::DynamicCodes);

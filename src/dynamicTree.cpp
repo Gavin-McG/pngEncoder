@@ -34,12 +34,10 @@ vector<DynamicCode> getPrefixCodes(vector<size_t> &frequencies, size_t maxL) {
     //count non-zero values
     size_t values = 0;
     for (size_t i=0;i<sortedFreq.size(); ++i, ++values) {
-        //cout << sortedFreq[i] << ' ';
         if (sortedFreq[i]==0) {
             break;
         }
     }
-    //cout << endl;
 
     //no values edge case
     if (values==0) {
@@ -48,7 +46,6 @@ vector<DynamicCode> getPrefixCodes(vector<size_t> &frequencies, size_t maxL) {
 
     //get code lengths from sorted frequencies
     vector<size_t> lengths = getCodeLengths(sortedFreq, maxL, values);
-    cout << values << ' ' << lengths.size() << endl;
 
     //add zero-length codes
     for (size_t i=0;i<sortedFreq.size()-values;++i) {
@@ -113,16 +110,9 @@ vector<size_t> getCodeLengths(vector<size_t> &frequencies, size_t maxL, size_t c
     leaves = vector<node>();
     roots = vector<node>();
 
-    // for (size_t i=0;i<table.size();++i) {
-    //     for (size_t j=0; j<table[i].size(); ++j) {
-    //         cout <<table[i][j].val << ' ';
-    //     }
-    //     cout << endl;
-    // }
-
     //explore first 2n-2 trees to get code lengths
     vector<size_t> lengths(count,0);
-    for (size_t i=0;i<count*2-2;++i) {
+    for (size_t i=0;i<max(1ul,count*2-2);++i) {
         exploreTree(table,maxL-1,i,lengths);
     }
     return lengths;
