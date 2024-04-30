@@ -102,12 +102,12 @@ int main(int argc, char* argv[]) {
         //output
         ofstream fs(options.fileOut);
 
-        ImageInfo image(4,4,ColorType::True,BitDepth::Eight,Color(0.1,0.7,0.9,1));
+        ImageInfo image(100,100,ColorType::True,BitDepth::Eight,Color(0.1,0.7,0.9,1));
         image.setFilters(FilterType::Average);
 
-        for (float i=0; i<4; i++) {
-            for (float j=0; j<4; ++j) {
-                if ((static_cast<int>(i+j)/5)%2==0) image.drawPixel(i,j,Color(i/500,j/500,0.5,1));
+        for (float i=0; i<100; i++) {
+            for (float j=0; j<100; ++j) {
+                if ((static_cast<int>(i+j)/5)%2==0) image.drawPixel(i,j,Color(i/100,j/100,0.5,1));
             }
         }
 
@@ -134,10 +134,26 @@ int main(int argc, char* argv[]) {
 
     //dynamic image test
     if (false) {
-        ImageInfo image(3,3,ColorType::True,BitDepth::Eight,Color(1,0.5,0));
+        size_t w=75, h=1;
+
+        ImageInfo image(w,h,ColorType::Grey,BitDepth::Eight,Color(1,0.5,0));
+
+        for (float i=0; i<w; i++) {
+            for (float j=0; j<h; ++j) {
+                if ((static_cast<int>(i+j))%1==0) image.drawPixel(i,j,Color(i/w,0.5,0,1));
+            }
+        }
 
         ofstream fs(options.fileOut);
         image.printPng(fs,DeflateType::DynamicCodes);
+    }
+
+    //codes and xbits tests
+    if (false) {
+        cout << "length codes: " << endl;
+        for (int i=3; i<=258; ++i) {
+            cout << '\t' << i << ' ' << getLengthCode(i) << endl;
+        }
     }
 
     return 0;

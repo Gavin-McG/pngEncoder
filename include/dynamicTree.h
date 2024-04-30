@@ -13,7 +13,7 @@ struct DynamicCode {
     uint8_t length;
     uint16_t val;
 
-    DynamicCode(uint8_t length, uint8_t val) : length(length), val(val) {}
+    DynamicCode(uint8_t length, uint16_t val) : length(length), val(val) {}
 };
 
 bool pairCompare(const pair<int, int>& a, const pair<int, int>& b);

@@ -23,6 +23,7 @@ void iBitstream::pushLR(T integer) {
 
 template<typename T>
 void iBitstream::pushLR(T integer, size_t bits) {
+    //if (integer>255) cout << "PUSHED BIT LENGTH LARGER THAN 8" << endl;
     for (size_t i=1; i<=bits; ++i) {
         pushBit((integer>>(bits-i))%2);
     }

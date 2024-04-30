@@ -54,8 +54,37 @@ void decompress_uncompressed(oBitstream &bs, vector<Code> &codes) {
     }
 }
 
-void decompress_static(oBitstream &bs, vector<Code> &codes) {
+
+
+
+
+
+
+bool checkCode(const DynamicCode &code, vector<Code> &codes) {
+    if (code.length==7 && code.val>=0 && code.val<=23) {
+        return true;
+    }else if (code.length==8 && code.val>=48 && code.val<=199) {
+        return true;
+    }else if (code.length==9 && code.val>=400 && code.val<=511) {
+        return true;
+    }
+    return false;
 }
+
+void decompress_static(oBitstream &bs, vector<Code> &codes) {
+    while (true) {
+        DynamicCode readCode = DynamicCode(7,bs.getLR<uint16_t>(7));
+        
+    }
+}
+
+
+
+
+
+
+
+
 
 void decompress_dynamic(oBitstream &bs, vector<Code> &codes) {
 }

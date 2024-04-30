@@ -71,6 +71,8 @@ uint16_t getLengthXbits(uint16_t length) {
 }
 
 uint16_t getLengthCode(uint16_t length) {
+    if (length==258) return 285;
+
     //shift length into range 0-255
     uint16_t shifted = length-3;
 
@@ -261,7 +263,7 @@ vector<pair<uint8_t,uint8_t>> codeLengthEncoding(vector<uint8_t> &lengths) {
 
     size_t i=0;
     while (i<lengths.size()) {
-        //count 0 series
+        //count 0 series (cod 17/18)
         size_t j=i;
         while (j<lengths.size() && j-i<138 && lengths[j]==0) ++j;
         if (j-i>=11) {
@@ -274,7 +276,7 @@ vector<pair<uint8_t,uint8_t>> codeLengthEncoding(vector<uint8_t> &lengths) {
             continue;
         }
 
-        //repeating series
+        //repeating series (code 16)
         if (i>0) {
             size_t j=i;
             while (j<lengths.size() && j-i<6 && lengths[j]==lengths[i-1]) ++j;
@@ -285,6 +287,7 @@ vector<pair<uint8_t,uint8_t>> codeLengthEncoding(vector<uint8_t> &lengths) {
             }
         }
 
+        //add length code 0-15
         encoding.emplace_back(lengths[i],0);
         ++i;
     }
@@ -439,23 +442,27 @@ vector<uint8_t> huffman_dynamic(vector<Code> codes, uint32_t adler) {
         //extra bits
         if (basicEncoding[i].first==18) {
             bs.pushRL(basicEncoding[i].second,7);
-        }else if (basicEncoding[i].first==18) {
+        }else if (basicEncoding[i].first==17) {
             bs.pushRL(basicEncoding[i].second,3);
-        }else if (basicEncoding[i].first==18) {
+        }else if (basicEncoding[i].first==16) {
             bs.pushRL(basicEncoding[i].second,2);
         }
     }
 
     //output huffman coded data for this block
+    cout << "encoded Codes:" << endl;
      for (Code c : codes) {
         switch (c.type) {
             case CodeType::Literal:
+                cout << '\t' << 'L' << static_cast<int>(c.val) << endl;
                 addLiteralDynamic(bs,c.val,LLCodes);
                 break;
             case CodeType::Length:
+                cout << '\t' << 'P' << static_cast<int>(c.val) << ' ';
                 addLengthCode(bs,c.val,LLCodes);
                 break;
             case CodeType::Distance:
+                cout << 'D' << static_cast<int>(c.val) << endl;
                 addDistanceCode(bs,c.val,distCodes);
                 break;
             default: break;
