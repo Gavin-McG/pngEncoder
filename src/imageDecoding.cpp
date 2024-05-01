@@ -98,7 +98,14 @@ void ImageInfo::setScanline(size_t row, vector<uint8_t> &bytes) {
     uint16_t maxVal = (1ul << bits) - 1;
 
     //set filter
-    filters[row]=static_cast<FilterType>(bs.getLR<uint8_t>(8));
+    uint8_t filterVal = bs.getLR<uint8_t>(8);
+    filters[row]=static_cast<FilterType>(filterVal);
+    if (filterVal>4) {
+        cout << "Invalid filter number " << static_cast<int>(filterVal) << " in row " << row << endl;
+        //filters[row] = FilterType::Average;
+    }else{
+        //cout << "filter value " << static_cast<int>(filterVal) << " in row " << row << endl;
+    }
 
     //add all pixels in row to bitstream
     uint16_t v,r,g,b,a;
