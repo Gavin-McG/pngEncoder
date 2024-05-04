@@ -5,8 +5,8 @@ ImageInfo::ImageInfo(istream &is) {
 
     //verify signature
     if (!verifySig(is)) {
-        cout << "PNG signature not correctly identified" << endl;
-        cout << "\tFile in either corrupted or is not in PNG format" << endl;
+        cerr << "PNG signature not correctly identified" << endl;
+        cerr << "\tFile in either corrupted or is not in PNG format" << endl;
         *this = ImageInfo();
         return;
     }
@@ -31,9 +31,6 @@ ImageInfo::ImageInfo(istream &is) {
 vector<vector<uint8_t>> ImageInfo::unflattenBytes(vector<uint8_t> &bytes) const {
     vector<vector<uint8_t>> result;
     result.resize(height);
-
-    cout << "decompression complete" << endl;
-    cout << "\tRead " << bytes.size() << " bytes" << endl;
 
     size_t rowSize = bytes.size()/height;
     for (size_t i=0; i<height; ++i) {
@@ -101,10 +98,7 @@ void ImageInfo::setScanline(size_t row, vector<uint8_t> &bytes) {
     uint8_t filterVal = bs.getLR<uint8_t>(8);
     filters[row]=static_cast<FilterType>(filterVal);
     if (filterVal>4) {
-        cout << "Invalid filter number " << static_cast<int>(filterVal) << " in row " << row << endl;
-        //filters[row] = FilterType::Average;
-    }else{
-        //cout << "filter value " << static_cast<int>(filterVal) << " in row " << row << endl;
+        cerr << "Invalid filter number " << static_cast<int>(filterVal) << " in row " << row << endl;
     }
 
     //add all pixels in row to bitstream
@@ -197,9 +191,9 @@ bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals) {
     generatedCRC = getCRC32(data, crcTable, true, generatedCRC);
 
     if (fileCRC != generatedCRC) {
-        cout << "CRC mismatch is chunk " << chunkName << endl;
-        cout << "\tread CRC: " << fileCRC << endl;
-        cout << "\tcaluculated CRC: " << generatedCRC << endl;
+        cerr << "CRC mismatch is chunk " << chunkName << endl;
+        cerr << "\tread CRC: " << fileCRC << endl;
+        cerr << "\tcaluculated CRC: " << generatedCRC << endl;
     }
 
     //run chunk-specific computation
@@ -224,7 +218,7 @@ bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals) {
 
 
 void ImageInfo::readIHDR(vector<uint8_t> &data) {
-    if (data.size() != 13) cout << "Inavlid length in IHDR chunk" << endl;
+    if (data.size() != 13) cerr << "Inavlid length in IHDR chunk" << endl;
 
     oBitstream bs(move(data),BitOrder::MSBitFirst);
     width = bs.getLR<uint32_t>(32);
@@ -244,11 +238,6 @@ void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals) {
 
     vector<Code> codes = huffman_decompress(bs);
 
-    // for (size_t i=0;i<codes.size();++i) {
-    //     cout << codes[i].val << " ";
-    // }
-    // cout << endl;
-
     lz77_decompress(codes, literals);
 
     bs.setOrder(BitOrder::MSBitFirst);
@@ -256,11 +245,11 @@ void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals) {
     uint32_t generatedAdler = getADLER32(literals);
 
     if (fileAdler != generatedAdler) {
-        cout << "ADLER32 mismatch in decompressed data" << endl;
-        cout << "\tread Adler: " << fileAdler << endl;
-        cout << "\tcaluculated Adler: " << generatedAdler << endl;
-        cout << "\t# of literals: " << literals.size() << endl;
-        cout << "\t# of codes: " << codes.size() << endl;
+        cerr << "ADLER32 mismatch in decompressed data" << endl;
+        cerr << "\tread Adler: " << fileAdler << endl;
+        cerr << "\tcaluculated Adler: " << generatedAdler << endl;
+        cerr << "\t# of literals: " << literals.size() << endl;
+        cerr << "\t# of codes: " << codes.size() << endl;
     }
 }
 
@@ -268,5 +257,5 @@ void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals) {
 
 
 void ImageInfo::readIEND(vector<uint8_t> &data) {
-    if (data.size() != 0) cout << "Inavlid length in IEND chunk" << endl;
+    if (data.size() != 0) cerr << "Inavlid length in IEND chunk" << endl;
 }

@@ -19,8 +19,11 @@ void getMode(int argc, char * argv[], Options &options) {
     int choice;
     int index = 0;
     option long_options[] = {
-        { "input",  required_argument,    nullptr, 'i'},
-        { "output",  required_argument,    nullptr, 'o'},
+        { "input",          required_argument,  nullptr, 'i'},
+        { "output",         required_argument,  nullptr, 'o'},
+        { "debug-huffman",  no_argument,        nullptr, 'h'},
+        { "debug-lz77",     no_argument,        nullptr, 'l'},
+        { "debug-filters",  no_argument,        nullptr, 'l'},
         { nullptr, 0, nullptr, '\0' }
     };  // long_options[]
 
@@ -47,115 +50,64 @@ int main(int argc, char* argv[]) {
     Options options;
     getMode(argc, argv, options);
 
-    //decode and re-encode
-    if (true) {
-        ifstream fs(options.fileIn, ios::binary);
-        ImageInfo image(fs);
-        fs.close();
-
-        //image.colorType = ColorType::TrueAlpha;
-
-        ofstream fs2(options.fileOut);
-        image.printPng(fs2,DeflateType::NoCompression);
-        fs2.close();
-    }
-
-    //simple encode
+    //generate variants
     if (false) {
-        ImageInfo image(30,30,Color(1,0,0));
-        ofstream fs(options.fileOut);
-        image.printPng(fs,DeflateType::NoCompression);
-        fs.close();
-    }
+        //image suffixes
+        vector<FilterType> filters = {FilterType::None, FilterType::Sub, FilterType::Up, FilterType::Average, FilterType::Paeth};
+        vector<string> filterSuffix = {"n","s","u","a","p"};
 
-    //simple decode
-    if (false) {
-        ifstream fs(options.fileIn);
-        ImageInfo image(fs);
-        fs.close();
-    }
+        vector<DeflateType> compMethods = {DeflateType::NoCompression, DeflateType::StaticCodes, DeflateType::DynamicCodes};
+        vector<string> compMethodSuffix = {"n","s","d"};
 
-    //static decode test
-    if (false) {
-        random_device rd;  
-        mt19937 gen(rd());
-        uniform_int_distribution<> distribution(0, 255); 
-
-        vector<uint8_t> inputData;
-        for (size_t i=0;i<100; ++i) {
-            inputData.push_back(distribution(gen));
-        }
-        for (size_t i=0;i<100;++i) {
-            inputData.push_back(inputData[i]);
-        }
-
-        cout << "input data:" << endl;
-        for (size_t i=0; i<inputData.size(); ++i) {
-            cout << setw(3) << static_cast<int>(inputData[i]) << ' ';
-        }
-        cout << endl << endl;
-
-        vector<Code> inputCodes = lz77_compress(inputData);
-
-        cout << "input codes:" << endl;
-        for (size_t i=0; i<inputCodes.size(); ++i) {
-            if (inputCodes[i].type==Literal) cout << 'L';
-            else if (inputCodes[i].type==Length) cout << 'P';
-            else if (inputCodes[i].type==Distance) cout << 'D';
-
-            cout << static_cast<int>(inputCodes[i].val) << ' ';
-        }
-        cout << endl << endl;
-
-        vector<uint8_t> encodedData = huffman_static(inputCodes,0);
-
-        cout << "encoded data:" << endl;
-        for (size_t i=0; i<encodedData.size(); ++i) {
-            for (size_t j=8; j>0; --j) {
-                cout << static_cast<int>((encodedData[i]>>(j-1))%2);
-            }
-            cout << ' ';
-        }
-        cout << endl << endl;
-
-        oBitstream bs(encodedData);
-        vector<Code> outputCodes;
-        bs.getRL<uint8_t>(19); //get rid of unnecessary data for test
-        decompress_static(bs,outputCodes);
-
-        cout << "outut codes:" << endl;
-        for (size_t i=0; i<outputCodes.size(); ++i) {
-            if (outputCodes[i].type==Literal) cout << 'L';
-            else if (outputCodes[i].type==Length) cout << 'P';
-            else if (outputCodes[i].type==Distance) cout << 'D';
-
-            cout << static_cast<int>(outputCodes[i].val) << ' ';
-        }
-        cout << endl << endl;
-
-        vector<uint8_t> outputdata;
-        lz77_decompress(outputCodes,outputdata);
-
-        for (size_t i=0;i<outputdata.size();++i) {
-            cout << setw(3) << static_cast<int>(outputdata[i]) << ' ';
-        }
-        cout << endl << endl;
-
-        bool passed = true;
-        if (outputdata.size() != inputData.size()) {
-            passed = false;
-        }else{
-            for (size_t i=0; i<inputData.size(); ++i) {
-                if (inputData[i]!=outputdata[i]) {
-                    passed = false;
-                    break;
+        //create image
+        size_t w=500, h=500;
+        ImageInfo image(w,h,ColorType::True,BitDepth::Eight,Color(0.2,0.6,0.3));
+        
+        for (size_t i=0; i<w; ++i) {
+            for (size_t j=0; j<h; ++j) {
+                if ((w/2-i)*(w/2-i)+(h/2-j)*(h/2-j)<40000) {
+                    image.drawPixel(i,j, Color(1,0.6,0.35));
+                }
+                if ((i/5)%2 != (j/5)%2) {
+                    image.drawPixel(i,j,Color(0.02*(i%50),0.02*(j%50),0.02*(i*j%50)));
                 }
             }
         }
-        if (passed) {
-            cout << "Test was passed" << endl;
-        }else{
-            cout << "Test failed" << endl;
+
+        ImageInfo gaussian = getGaussian(5,1);
+        ImageInfo newImage = image.filter(gaussian);
+
+
+        //encode versions
+        for (size_t i=0; i<filters.size(); ++i) {
+            for (size_t j=0; j<compMethods.size(); ++j) {
+                image.setFilters(filters[i]);
+
+                ofstream fs(options.fileOut + '-' + filterSuffix[i] + compMethodSuffix[j] + ".png");
+                newImage.printPng(fs, compMethods[j]);
+                fs.close();
+            }
+        }
+    }
+
+    //read variants to basic non-compression
+    if (true) {
+        vector<FilterType> filters = {FilterType::None, FilterType::Sub, FilterType::Up, FilterType::Average, FilterType::Paeth};
+        vector<string> filterSuffix = {"n","s","u","a","p"};
+
+        vector<DeflateType> compMethods = {DeflateType::NoCompression, DeflateType::StaticCodes, DeflateType::DynamicCodes};
+        vector<string> compMethodSuffix = {"n","s","d"};
+
+        for (size_t i=0; i<filters.size(); ++i) {
+            for (size_t j=0; j<compMethods.size(); ++j) {
+                ifstream ifs(options.fileOut + '-' + filterSuffix[i] + compMethodSuffix[j] + ".png");
+                ImageInfo image(ifs);
+                ifs.close();
+
+                ofstream ofs(options.fileOut + '-' + filterSuffix[i] + compMethodSuffix[j] + "-out.png");
+                image.printPng(ofs,DeflateType::DynamicCodes);
+                ofs.close();
+            }
         }
     }
 

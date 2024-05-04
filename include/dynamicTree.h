@@ -13,8 +13,23 @@ struct DynamicCode {
     uint8_t length;
     uint16_t val;
 
+    DynamicCode() : length(0), val(0) {}
     DynamicCode(uint8_t length, uint16_t val) : length(length), val(val) {}
 };
+
+bool operator==(const DynamicCode &lhs, const DynamicCode &rhs);
+
+namespace std {
+    template<>
+    struct hash<DynamicCode> {
+        size_t operator()(const DynamicCode& k) const {
+            return std::hash<std::uint8_t>()(k.length) ^ (std::hash<std::uint16_t>()(k.val) << 1);
+        }
+    };
+}
+
+
+
 
 bool pairCompare(const pair<int, int>& a, const pair<int, int>& b);
 

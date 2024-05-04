@@ -7,6 +7,7 @@
 #include <bit>
 #include <iostream>
 #include <iomanip>
+#include <unordered_map>
 #include "bitstream.h"
 #include "utilities.h"
 #include "lz77.h"

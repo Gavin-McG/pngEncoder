@@ -50,13 +50,13 @@ void lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals) {
         if (codes[i].type == CodeType::Literal) {
             literals.push_back(codes[i].val);
         }else if (codes[i].type == CodeType::Length) {
-            if (i+1 == codes.size() || codes[i+1].type != CodeType::Distance) cout << "lz77 length code missing distance code" << endl;
+            if (i+1 == codes.size() || codes[i+1].type != CodeType::Distance) cerr << "lz77 length code missing distance code" << endl;
             for (size_t j=literals.size()-codes[i+1].val, k=0; k<codes[i].val; ++k, ++j) {
                 literals.push_back(literals[j]);
             }
             ++i;
         }else{
-            cout << "Invalid lz77 code order - skipping distance code" << endl;
+            cerr << "Invalid lz77 code order - skipping distance code" << endl;
         }
     }
 }

@@ -1,6 +1,17 @@
 #include "../include/dynamicTree.h"
 
 
+
+
+bool operator==(const DynamicCode &lhs, const DynamicCode &rhs){
+    return (lhs.length==rhs.length) && (lhs.val==rhs.val);
+}
+
+
+
+
+
+
 bool pairCompare(const pair<int, int>& a, const pair<int, int>& b) {
     if (a.second == 0 && b.second != 0) {
         return false; // a (zero) should go after b
@@ -10,6 +21,10 @@ bool pairCompare(const pair<int, int>& a, const pair<int, int>& b) {
         return a.second < b.second; // normal comparison
     }
 }
+
+
+
+
 
 vector<DynamicCode> getPrefixCodes(vector<size_t> &frequencies, size_t maxL) {
     //sort index and frequency pairs
