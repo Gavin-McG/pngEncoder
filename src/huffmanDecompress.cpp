@@ -4,7 +4,7 @@
 
 
 
-vector<Code> huffman_decompress(oBitstream &bs) {
+vector<Code> huffman_decompress(oBitstream &bs, bool debug) {
     vector<Code> codes;
 
     bool lastBlock = false;
@@ -16,11 +16,11 @@ vector<Code> huffman_decompress(oBitstream &bs) {
 
         //retrieve codes from data
         if (deflateMethod == 0) {
-            decompress_uncompressed(bs, codes);
+            decompress_uncompressed(bs, codes, debug);
         }else if (deflateMethod == 1) {
-            decompress_static(bs, codes);
+            decompress_static(bs, codes, debug);
         }else if (deflateMethod == 2) {
-            decompress_dynamic(bs, codes);
+            decompress_dynamic(bs, codes, debug);
         }else{
             cerr << "Incorrect delfate method read" << endl;
         }
@@ -34,7 +34,7 @@ vector<Code> huffman_decompress(oBitstream &bs) {
 
 
 
-void decompress_uncompressed(oBitstream &bs, vector<Code> &codes) {
+void decompress_uncompressed(oBitstream &bs, vector<Code> &codes, bool debug) {
     bs.nextByte();
 
     uint16_t length = bs.getRL<uint16_t>(16);
@@ -78,6 +78,7 @@ Code decodeLLCodeStatic(oBitstream &bs, const DynamicCode &code) {
     }else if (code.length==8 && code.val>=48 && code.val<=191) {
         codeVal = 0 + code.val - 48;
     }else if (code.length==8 && code.val>=192 && code.val<=199) {
+
         codeVal = 280 + code.val - 192;
     }else if (code.length==9 && code.val>=400 && code.val<=511) {
         codeVal = 144 + code.val - 400;
@@ -112,7 +113,7 @@ Code decodeDistCodeStatic(oBitstream &bs) {
     return Code(CodeType::Distance,rangeVal + distValues[codeVal]);
 }
 
-void decompress_static(oBitstream &bs, vector<Code> &codes) {
+void decompress_static(oBitstream &bs, vector<Code> &codes, bool debug) {
     while (true) {
         DynamicCode readCode = DynamicCode(7,bs.getLR<uint16_t>(7));
         //advance to 8-bit code
@@ -130,7 +131,7 @@ void decompress_static(oBitstream &bs, vector<Code> &codes) {
         Code newCode = decodeLLCodeStatic(bs,readCode);
 
         //check for end of block
-        if (newCode.val==256) {
+        if (newCode.type==CodeType::Literal && newCode.val==256) {
             break;
         }
 
@@ -189,7 +190,7 @@ Code decodeDistCodeDynamic(oBitstream &bs, const uint16_t codeVal) {
     return Code(CodeType::Distance,rangeVal + distValues[codeVal]);
 }
 
-void decompress_dynamic(oBitstream &bs, vector<Code> &codes) {
+void decompress_dynamic(oBitstream &bs, vector<Code> &codes, bool debug) {
     //get counts
     uint8_t HLIT = bs.getRL<uint8_t>(5);
     uint8_t HDIST = bs.getRL<uint8_t>(5);
@@ -264,7 +265,7 @@ void decompress_dynamic(oBitstream &bs, vector<Code> &codes) {
         Code newCode = decodeLLCodeDynamic(bs,readCode);
 
         //check for end of block
-        if (newCode.val==256) {
+        if (newCode.type==CodeType::Literal && newCode.val==256) {
             break;
         }
 

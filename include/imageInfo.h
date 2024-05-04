@@ -55,6 +55,14 @@ static const uint8_t UINT4_MAX = 15;
 static const uint8_t UINT2_MAX = 3;
 static const uint8_t UINT1_MAX = 1;
 
+struct DebugOptions {
+    bool filterDebug = false;
+    bool lz77Debug = false;
+    bool huffmanDebug = false;
+
+    DebugOptions() : filterDebug(false), lz77Debug(false), huffmanDebug(false) {}
+};
+
 //class used to store info of an image.
 class ImageInfo {
     inline static uint32_t crcTable[256];
@@ -83,7 +91,7 @@ class ImageInfo {
     ImageInfo(vector<vector<T>> values, BitDepth bitDepth);
 
     //constructor from png file
-    ImageInfo(istream &is);
+    ImageInfo(istream &is, const DebugOptions &options = DebugOptions());
 
     //copy constructor
     ImageInfo(const ImageInfo &other);
@@ -96,7 +104,7 @@ class ImageInfo {
     void calculateBestFilters();
 
     //output encoded png file to ostream
-    void printPng(ostream &os, DeflateType deflateType = DeflateType::StaticCodes) const;
+    void printPng(ostream &os, DeflateType deflateType = DeflateType::StaticCodes, const DebugOptions &options = DebugOptions()) const;
 
     //drawing functions
     void drawPixel(uint32_t x, uint32_t y, const Color &color);
@@ -121,9 +129,9 @@ class ImageInfo {
 
     //reading png components from istream
     static bool verifySig(istream &is);
-    bool readChunk(istream &is, vector<uint8_t> &literals);
+    bool readChunk(istream &is, vector<uint8_t> &literals, const DebugOptions &options = DebugOptions());
     void readIHDR(vector<uint8_t> &data);
-    void readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals);
+    void readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals, const DebugOptions &options = DebugOptions());
     void readIEND(vector<uint8_t> &data);
     void readUnknown(vector<uint8_t> &data);
 
@@ -136,7 +144,7 @@ class ImageInfo {
     //encoding critical png components
     void printSig(ostream &os) const;
     void printIDHR(ostream &os) const;
-    void printIDAT(ostream &os, DeflateType deflateType) const;
+    void printIDAT(ostream &os, DeflateType deflateType, const DebugOptions &options = DebugOptions()) const;
     void printIEND(ostream &os) const;
 
     friend ImageInfo getGaussian(size_t N, float sigma);

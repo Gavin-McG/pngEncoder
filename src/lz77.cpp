@@ -2,7 +2,29 @@
 
 
 
-vector<Code> lz77_compress(vector<uint8_t> &literals) {
+
+void printLZ77Codes(const vector<Code> &codes) {
+    cout << codes.size() << " codes:" << endl;
+    for (size_t i=0;i<codes.size();++i) {
+        if (codes[i].type==CodeType::Literal) {
+            cout << "L-";
+        }else if (codes[i].type==CodeType::Length) {
+            cout << "P-";
+        }else{
+            cout << "D-";
+        }
+        cout << left << setw(8) << setfill(' ') << codes[i].val;
+        if (i%8==7) cout << '\n';
+    }
+    if (codes.size()%8!=0) {
+        cout << '\n';
+    }
+}
+
+
+
+
+vector<Code> lz77_compress(vector<uint8_t> &literals, bool debug) {
     vector<Code> encoded;
 
     //loop through until all bytes have been encoded
@@ -40,12 +62,22 @@ vector<Code> lz77_compress(vector<uint8_t> &literals) {
         }
     }
 
+    //debug output
+    if (debug) {
+        printLZ77Codes(encoded);
+    }
+
     return encoded;
 }
 
 
 
-void lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals) {
+void lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals, bool debug) {
+    //debug output
+    if (debug) {
+        printLZ77Codes(codes);
+    }
+
     for (size_t i=0;i<codes.size();++i) {
         if (codes[i].type == CodeType::Literal) {
             literals.push_back(codes[i].val);

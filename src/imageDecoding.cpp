@@ -1,6 +1,6 @@
 #include "../include/imageInfo.h"
 
-ImageInfo::ImageInfo(istream &is) {
+ImageInfo::ImageInfo(istream &is, const DebugOptions &options) {
     if (!crcGenerated) generateCRC(crcTable);
 
     //verify signature
@@ -13,7 +13,7 @@ ImageInfo::ImageInfo(istream &is) {
 
     //read chunks until end chunk is found
     vector<uint8_t> literals;
-    while (!readChunk(is, literals));
+    while (!readChunk(is, literals, options));
 
     //set vectors
     ref = vector<vector<Color>>(height,vector<Color>(width));
@@ -55,26 +55,26 @@ void ImageInfo::unfilterBytes(vector<vector<uint8_t>> &bytes) const {
             case FilterType::None:
                 break;
             case FilterType::Sub:
-                for (size_t j=1; j<bytes.size(); ++j) {
+                for (size_t j=1; j<bytes[i].size(); ++j) {
                     a = (j<=byteShift)?0:bytes[i][j-byteShift];
                     bytes[i][j] += a;
                 }
                 break;
             case FilterType::Up:
-                for (size_t j=1; j<bytes.size(); ++j) {
+                for (size_t j=1; j<bytes[i].size(); ++j) {
                     b = (i==0)?0:bytes[i-1][j];
                     bytes[i][j] += b;
                 }
                 break;
             case FilterType::Average:
-                for (size_t j=1; j<bytes.size(); ++j) {
+                for (size_t j=1; j<bytes[i].size(); ++j) {
                     a = (j<=byteShift)?0:bytes[i][j-byteShift];
                     b = (i==0)?0:bytes[i-1][j];
                     bytes[i][j] += ((b+a)>>1);
                 }
                 break;
             case FilterType::Paeth:
-                for (size_t j=1; j<bytes.size(); ++j) {
+                for (size_t j=1; j<bytes[i].size(); ++j) {
                     a = (j<=byteShift)?0:bytes[i][j-byteShift];
                     b = (i==0)?0:bytes[i-1][j];
                     c = (i==0||j<=byteShift)?0:bytes[i-1][j-byteShift];
@@ -166,7 +166,7 @@ bool ImageInfo::verifySig(istream &is) {
 }
 
 
-bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals) {
+bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals, const DebugOptions &options) {
     //check that is is still valid
     if (is.eof()) return true;
 
@@ -198,13 +198,10 @@ bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals) {
 
     //run chunk-specific computation
     if (chunkName == "IHDR") {
-        cout << "reading IHDR chunk..." << endl; 
         readIHDR(data);
     }else if (chunkName == "IDAT") {
-        cout << "reading IDAT chunk..." << endl; 
-        readIDAT(data, literals);
+        readIDAT(data, literals, options);
     }else if (chunkName == "IEND") {
-        cout << "reading IEND chunk..." << endl;
         readIEND(data);
     }else{
         cout << "skipping over " << chunkName << " chunk" << endl;
@@ -230,7 +227,7 @@ void ImageInfo::readIHDR(vector<uint8_t> &data) {
 
 
 
-void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals) {
+void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals, const DebugOptions &options) {
     oBitstream bs(move(data));
 
     uint8_t CMF = bs.getRL<uint8_t>(8);
@@ -238,7 +235,7 @@ void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals) {
 
     vector<Code> codes = huffman_decompress(bs);
 
-    lz77_decompress(codes, literals);
+    lz77_decompress(codes, literals, options.lz77Debug);
 
     bs.setOrder(BitOrder::MSBitFirst);
     uint32_t fileAdler = bs.getLR<uint32_t>(32);

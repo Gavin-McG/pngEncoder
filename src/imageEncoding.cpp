@@ -138,12 +138,12 @@ vector<uint8_t> ImageInfo::flattenBytes(vector<vector<uint8_t>> &bytes) const {
 
 
 
-void ImageInfo::printPng(ostream &os, DeflateType deflateType) const {
+void ImageInfo::printPng(ostream &os, DeflateType deflateType, const DebugOptions &options) const {
     if (!crcGenerated) generateCRC(crcTable);
 
     printSig(os);
     printIDHR(os);
-    printIDAT(os, deflateType);
+    printIDAT(os, deflateType, options);
     printIEND(os);
 }
 
@@ -173,7 +173,7 @@ void ImageInfo::printIDHR(ostream &os) const {
     os << ss.str();
 }
 
-void ImageInfo::printIDAT(ostream &os, DeflateType deflateType) const {
+void ImageInfo::printIDAT(ostream &os, DeflateType deflateType, const DebugOptions &options) const {
     //get image data
     vector<vector<uint8_t>> bytes = getImageBytes();
     filterBytes(bytes);
@@ -189,13 +189,13 @@ void ImageInfo::printIDAT(ostream &os, DeflateType deflateType) const {
         datastream = huffman_uncompressed(data, adler);
     }else if (deflateType==DeflateType::StaticCodes) {
         //compress into codes
-        vector<Code> codes = lz77_compress(data);
+        vector<Code> codes = lz77_compress(data, options.lz77Debug);
         data = vector<uint8_t>();
         //huffman static coding
         datastream = huffman_static(codes,adler);
     }else{
         //compress into codes
-        vector<Code> codes = lz77_compress(data);
+        vector<Code> codes = lz77_compress(data, options.lz77Debug);
         data = vector<uint8_t>();
         //huffman dynamic coding
         datastream = huffman_dynamic(codes,adler);

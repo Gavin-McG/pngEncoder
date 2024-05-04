@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -23,8 +24,13 @@ struct Code {
     Code (CodeType type, uint16_t val) : type(type), val(val) {}
 };
 
-vector<Code> lz77_compress(vector<uint8_t> &literals);
 
-void lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals);
+
+void printLZ77Codes(const vector<Code> &codes);
+
+
+vector<Code> lz77_compress(vector<uint8_t> &literals, bool debug = false);
+
+void lz77_decompress(vector<Code> &codes, vector<uint8_t> &literals, bool debug = false);
 
 #endif
