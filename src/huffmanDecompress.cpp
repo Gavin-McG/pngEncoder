@@ -16,10 +16,13 @@ vector<Code> huffman_decompress(oBitstream &bs, bool debug) {
 
         //retrieve codes from data
         if (deflateMethod == 0) {
+            if (debug) cout << "Deflate: No Compression" << endl;
             decompress_uncompressed(bs, codes, debug);
         }else if (deflateMethod == 1) {
+            if (debug) cout << "Deflate: Static Compression" << endl;
             decompress_static(bs, codes, debug);
         }else if (deflateMethod == 2) {
+            if (debug) cout << "Deflate: Dynamic Compression" << endl;
             decompress_dynamic(bs, codes, debug);
         }else{
             cerr << "Incorrect delfate method read" << endl;

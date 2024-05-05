@@ -112,3 +112,16 @@ ostream& operator<<(ostream &os, const Color &color) {
     os << '(' << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ')';
     return os;
 }
+
+
+Color colorMin(const Color &c1, const Color &c2) {
+    return Color(min(c1.r,c2.r),min(c1.g,c2.g),min(c1.b,c2.b),min(c1.a,c2.a));
+}
+Color colorMax(const Color &c1, const Color &c2) {
+    return Color(max(c1.r,c2.r),max(c1.g,c2.g),max(c1.b,c2.b),max(c1.a,c2.a));
+}
+
+
+Color abs(const Color &c) {
+    return Color(abs(c.r),abs(c.g),abs(c.b),abs(c.a));
+}

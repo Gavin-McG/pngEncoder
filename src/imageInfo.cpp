@@ -113,7 +113,9 @@ Color ImageInfo::getPixel(uint32_t x, uint32_t y) {
 }
 
 
-
+float gaussian(float d, float s) {
+    return pow(M_E,-d*d/(2*s*s));
+}
 
 
 ImageInfo getGaussian(size_t N, float sigma) {
@@ -192,4 +194,85 @@ ImageInfo ImageInfo::filter(const ImageInfo &kernel, bool normalize) const {
     }
 
     return newImage;
+}
+
+
+
+Color gaussianColor(const Color &c, float s) {
+    return Color(gaussian(c.r,s),gaussian(c.g,s),gaussian(c.b,s),gaussian(c.a,s));
+}
+
+ImageInfo ImageInfo::filterBilaterial(const ImageInfo &kernel, float s, bool normalize) const {
+    ImageInfo newImage(*this);
+
+    for (size_t i=0;i<height;++i) {
+        for (size_t j=0;j<width;++j) {
+            Color colorSum(0,0,0,0);
+            Color totalWeight(0,0,0,0);
+            for (size_t ki=0;ki<kernel.height;++ki) {
+                int y = static_cast<int>(i+ki) - kernel.height/2;
+                if (y<0 || y>=static_cast<int>(height)) continue;
+
+                for (size_t kj=0;kj<kernel.width;++kj) {
+                    int x = static_cast<int>(j+kj) - kernel.width/2;
+                    if (x<0 || x>=static_cast<int>(width)) continue;
+
+                    Color weight = kernel.ref[ki][kj]*gaussianColor(abs(ref[i][j]-ref[y][x]),s);
+
+                    colorSum += weight*ref[y][x];
+                    totalWeight += weight;
+                }
+            }
+            if (normalize) colorSum/=totalWeight;
+
+            newImage.ref[i][j] = colorSum;
+        }
+    }
+
+    return newImage;
+}
+
+
+
+void ImageInfo::clamp01() {
+    //get bounds
+    Color minColor = ref[0][0];
+    Color maxColor = ref[0][0];
+    for (size_t i=0;i<height;++i) {
+        for (size_t j=0; j<width;++j) {
+            minColor = colorMin(ref[i][j],minColor);
+            maxColor = colorMax(ref[i][j],maxColor);
+        }
+    }
+
+    //clamp to 0
+    for (size_t i=0;i<height;++i) {
+        for (size_t j=0; j<width;++j) {
+            ref[i][j] -= minColor;
+        }
+    }
+    maxColor -= minColor;
+
+    //stretch to 1
+    for (size_t i=0;i<height;++i) {
+        for (size_t j=0; j<width;++j) {
+            ref[i][j]/=maxColor;
+        }
+    }
+}
+
+void ImageInfo::applyGreyscale(){
+    for (size_t i=0; i<height; ++i) {
+        for (size_t j=0; j<width; ++j) {
+            ref[i][j] = Color(ref[i][j].getGreyscale(),ref[i][j].a);
+        }
+    }
+}
+
+void ImageInfo::setOpacity(float f) {
+    for (size_t i=0; i<height; ++i) {
+        for (size_t j=0; j<width; ++j) {
+            ref[i][j].a = f;
+        }
+    }
 }

@@ -113,8 +113,12 @@ class ImageInfo {
     //used for debugging
     Color getPixel(uint32_t x, uint32_t y);
 
-    //image filters
-    ImageInfo filter(const ImageInfo &kernel, bool normalize = false) const;
+    //complex image manipulation
+    ImageInfo filter(const ImageInfo &kernel, bool normalize = true) const;
+    ImageInfo filterBilaterial(const ImageInfo &kernel, float s, bool normalize = true) const;
+    void clamp01();
+    void applyGreyscale();
+    void setOpacity(float f);
 
     private:
     vector<vector<Color>> ref;

@@ -50,6 +50,12 @@ Color operator/(const Color &color, const float f);
 
 ostream& operator<<(ostream &os, const Color &color);
 
+//get a color with min r,g,b and a values
+Color colorMin(const Color &c1, const Color &c2);
+Color colorMax(const Color &c1, const Color &c2);
+
+Color abs(const Color &c);
+
 #include "color.tpp"
 
 #endif

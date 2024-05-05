@@ -204,7 +204,7 @@ bool ImageInfo::readChunk(istream &is, vector<uint8_t> &literals, const DebugOpt
     }else if (chunkName == "IEND") {
         readIEND(data);
     }else{
-        cout << "skipping over " << chunkName << " chunk" << endl;
+        cerr << "skipping over " << chunkName << " chunk" << endl;
     }
     
     //return
@@ -233,7 +233,7 @@ void ImageInfo::readIDAT(vector<uint8_t> &data, vector<uint8_t> &literals, const
     uint8_t CMF = bs.getRL<uint8_t>(8);
     uint8_t FLG = bs.getRL<uint8_t>(8);
 
-    vector<Code> codes = huffman_decompress(bs);
+    vector<Code> codes = huffman_decompress(bs, options.huffmanDebug);
 
     lz77_decompress(codes, literals, options.lz77Debug);
 

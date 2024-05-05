@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     }
 
     //read variants to basic non-compression
-    if (true) {
+    if (false) {
         vector<FilterType> filters = {FilterType::None, FilterType::Sub, FilterType::Up, FilterType::Average, FilterType::Paeth};
         vector<string> filterSuffix = {"n","s","u","a","p"};
 
@@ -153,6 +153,28 @@ int main(int argc, char* argv[]) {
         ifstream ifs(options.fileIn);
         ImageInfo image(ifs, options.debugOpt);
         ifs.close();
+    }
+
+    //read & print image
+    if (true) {
+        //read image
+        ifstream ifs(options.fileIn);
+        ImageInfo image(ifs, options.debugOpt);
+        ifs.close();
+
+        //filtering
+        cout << "filtering..." << endl;
+        ImageInfo gauss = getGaussian(25,5);
+        for (size_t i=0;i<0;++i) {
+            cout << "applying filter " << i << endl;
+            image = image.filterBilaterial(gauss,0.02,true);
+        }
+        cout << "done." << endl;
+
+        //print image
+        ofstream fs(options.fileOut);
+        image.printPng(fs, DeflateType::DynamicCodes, options.debugOpt);
+        fs.close();
     }
 
     return 0;
