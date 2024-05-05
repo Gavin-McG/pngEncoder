@@ -5,10 +5,11 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <unordered_map>
 
 using namespace std;
 
-static const size_t windowSize = (UINT16_MAX>>1)+1;
+static const size_t windowSize = 32768;
 static const size_t lengthSize = 258;
 
 enum CodeType {

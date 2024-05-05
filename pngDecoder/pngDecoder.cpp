@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     getMode(argc, argv, options);
 
     //generate variants
-    if (false) {
+    if (true) {
         //image suffixes
         vector<FilterType> filters = {FilterType::None, FilterType::Sub, FilterType::Up, FilterType::Average, FilterType::Paeth};
         vector<string> filterSuffix = {"n","s","u","a","p"};
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     }
 
     //read & print image
-    if (true) {
+    if (false) {
         //read image
         ifstream ifs(options.fileIn);
         ImageInfo image(ifs, options.debugOpt);
