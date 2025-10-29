@@ -1,34 +1,40 @@
 # PNG Encoder/Decoder
 
 A lightweight PNG encoder and decoder written entirely in C++ using only the C++ Standard Library (STL).  
-This project provides a simple, educational implementation of the PNG format, including chunk structure, filtering, and a custom DEFLATE compression algorithm.
+The project implements the PNG file format from scratch, including custom chunk handling, image filtering, and a fully manual DEFLATE/GZIP compression system.  
+It supports both image creation/encoding and decoding for educational and experimental purposes.
 
 ---
 
 ## Features
 
-- Pure C++ STL implementation with no external libraries or zlib dependencies  
-- Custom DEFLATE/GZIP compression implemented from scratch  
-- Supports RGB and RGBA images  
-- Does not support interleaved or indexed color types  
-- Chunk-based encoding and decoding compliant with PNG specifications  
-- Command-line interface with output file control (`--output` or `-o`)
+- Pure C++ STL implementation (no external libraries or zlib)  
+- Full PNG encoding and decoding pipeline  
+- Custom DEFLATE and Huffman compression implementation  
+- Supports RGB and RGBA truecolor images  
+- Multiple PNG filter modes (None, Sub, Up, Average, Paeth)  
+- Optional debug output for Huffman, LZ77, and filter stages  
+- Non-interlaced encoding and decoding  
+- CLI tools for encoding, decoding, and testing PNG variants
 
 ---
 
 ## Intended Use
 
-This project is designed as an educational and experimental PNG codec, demonstrating how image data, filtering, and compression interact at the binary level.  
-It is useful for learning about:
-- PNG file structure and chunk parsing  
-- Bitstream compression and Huffman tree construction  
-- Low-level image encoding and decoding
+This project is designed primarily as an educational reference implementation of the PNG format.  
+It can be used to explore:
+- PNG file structure and chunk organization  
+- Deflate compression and Huffman coding  
+- PNG filtering methods and reconstruction  
+- Image encoding/decoding at the binary level  
 
 ---
 
 ## Usage
 
-./pngcodec [options]
+### Encoding
+
+./pngencode [options]
 
 markdown
 Copy code
@@ -40,35 +46,58 @@ Copy code
 | `-o`, `--output <file>` | Output PNG file name | `default.png` |
 
 **Example:**
-./pngcodec -o output.png
+./pngencode -o output.png
 
 yaml
 Copy code
+
+This will encode a generated test image and save it to `output.png`.
 
 ---
 
-## Project Structure
+### Decoding
 
-src/
-├── main.cpp # Command-line entry point
-├── imageInfo.cpp # Image data management
-├── dynamicTree.cpp # Custom DEFLATE/Huffman implementation
-include/
-├── imageInfo.h
-├── dynamicTree.h
+./pngdecode [options]
+
+markdown
+Copy code
+
+**Options:**
+
+| Flag | Description | Default |
+|------|--------------|----------|
+| `-i`, `--input <file>` | Input PNG file name | `default.png` |
+| `-o`, `--output <file>` | Output PNG file name | `default.png` |
+| `-h`, `--debug-huffman` | Enable Huffman tree debug output | Off |
+| `-l`, `--debug-lz77` | Enable LZ77 compression debug output | Off |
+| `-f`, `--debug-filters` | Enable PNG filter debug output | Off |
+| `-d`, `--debug` | Enable all debug modes | Off |
+
+**Example:**
+./pngdecode -i input.png -o output.png -d
 
 yaml
 Copy code
+
+This reads `input.png`, decodes it, optionally applies filters, and writes the reconstructed image to `output.png` with verbose debug information.
+
+---
+
+## Debug Options
+
+Debug output can be selectively enabled for different subsystems:
+- **Huffman Debug:** prints Huffman tree construction and code table information  
+- **LZ77 Debug:** shows LZ77 match finding and distance/length encoding  
+- **Filter Debug:** displays the effect of different PNG filters on image data  
+- **Global Debug (`-d`):** enables all the above at once  
 
 ---
 
 ## Limitations
 
-- No support for interleaved (Adam7) or indexed-color PNGs  
-- Supports only non-interlaced truecolor and truecolor+alpha  
-- Focused on clarity and correctness rather than performance
-
----
+- Does not support interlaced (Adam7) or indexed-color PNGs  
+- Focused on correctness and educational value rather than performance  
+- Tested primarily with 8-bit truecolor and truecolor+alpha images  
 
 ## License
 
